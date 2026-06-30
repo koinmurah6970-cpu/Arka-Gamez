@@ -78,6 +78,16 @@ export type OrderItem = {
   price: number;
 };
 
+export type ProfileRole = "customer" | "admin";
+
+export type Profile = {
+  id: string;
+  full_name: string | null;
+  whatsapp_number: string | null;
+  role: ProfileRole;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -114,6 +124,12 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      profiles: {
+        Row: Profile;
+        Insert: Partial<Profile>;
+        Update: Partial<Profile>;
+        Relationships: [];
       };
       orders: { Row: Order; Insert: Partial<Order>; Update: Partial<Order>; Relationships: [] };
       order_items: {
