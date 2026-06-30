@@ -1,0 +1,30 @@
+# secrets -- never commit real credentials
+.env
+.env.local
+*.env
+!*.env.example
+
+# Next.js app (web/)
+web/node_modules/
+web/.next/
+web/out/
+web/.vercel/
+web/*.tsbuildinfo
+web/next-env.d.ts
+web/npm-debug.log*
+
+# Python ETL pipeline
+scripts/__pycache__/
+scripts/**/__pycache__/
+*.pyc
+
+# generated catalog artifacts (regenerate via scripts/, don't version binaries)
+data/covers/
+data/covers_progress.json
+data/games_import.csv
+data/qc_report.csv
+data/upload_failures.csv
+
+# OS
+.DS_Store
+Thumbs.db

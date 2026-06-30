@@ -1,0 +1,4 @@
+requests>=2.31
+Pillow>=10.0
+supabase>=2.4
+python-dotenv>=1.0
