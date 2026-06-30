@@ -26,40 +26,48 @@ export async function proxy(request: NextRequest) {
     }
   );
 
+  // Refresh the session cookie on every matched request so the navbar
+  // (and any server component) can read auth state reliably.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isLoginRoute = pathname === "/admin/login";
 
-  let isAdmin = false;
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    isAdmin = profile?.role === "admin";
-  }
+  // Admin routes: require admin role (except the login page itself)
+  if (pathname.startsWith("/admin")) {
+    const isLoginRoute = pathname === "/admin/login";
 
-  if (pathname.startsWith("/admin") && !isLoginRoute && !isAdmin) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/admin/login";
-    if (user) url.searchParams.set("error", "forbidden");
-    return NextResponse.redirect(url);
-  }
+    let isAdmin = false;
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      isAdmin = profile?.role === "admin";
+    }
 
-  if (isLoginRoute && isAdmin) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/admin";
-    url.search = "";
-    return NextResponse.redirect(url);
+    if (!isLoginRoute && !isAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      if (user) url.searchParams.set("error", "forbidden");
+      return NextResponse.redirect(url);
+    }
+
+    if (isLoginRoute && isAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };

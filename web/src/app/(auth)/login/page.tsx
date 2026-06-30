@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-export default function AdminLoginPage() {
+export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const forbidden = searchParams.get("error") === "forbidden";
+  const justRegistered = searchParams.get("registered") === "1";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,41 +33,40 @@ export default function AdminLoginPage() {
     }
 
     const {
-      data: { user: loggedUser },
+      data: { user },
     } = await supabase.auth.getUser();
-    if (loggedUser) {
+    if (user) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", loggedUser.id)
+        .eq("id", user.id)
         .single();
-      if (profile?.role !== "admin") {
-        setError("Akun ini bukan admin.");
-        await supabase.auth.signOut();
-        setSubmitting(false);
+
+      if (profile?.role === "admin") {
+        router.push("/admin");
+        router.refresh();
         return;
       }
     }
 
-    router.push("/admin");
+    router.push("/");
     router.refresh();
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <main className="min-h-[70vh] flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="h-8 w-8 bg-[#0b0f19] rounded-lg flex items-center justify-center font-black text-white italic text-lg">
-            G
-          </div>
-          <h1 className="text-lg font-extrabold tracking-tight text-gray-900">
-            GAMOS <span className="text-gray-500 font-medium">ADMIN</span>
-          </h1>
-        </div>
+        <h1 className="text-xl font-extrabold text-gray-900 mb-1">Masuk</h1>
+        <p className="text-xs text-gray-400 mb-6">
+          Belum punya akun?{" "}
+          <Link href="/daftar" className="text-blue-600 font-semibold hover:underline">
+            Daftar
+          </Link>
+        </p>
 
-        {forbidden && (
-          <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-3 mb-4">
-            Akun ini gak punya akses admin.
+        {justRegistered && (
+          <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg p-3 mb-4">
+            Akun berhasil dibuat! Silakan masuk.
           </p>
         )}
 
@@ -82,9 +82,7 @@ export default function AdminLoginPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
-              Password
-            </label>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Password</label>
             <input
               type="password"
               required
