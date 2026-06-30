@@ -88,6 +88,15 @@ export type Profile = {
   created_at: string;
 };
 
+export type StoreSettings = {
+  id: number;
+  wa_admin_number: string;
+  default_price: number;
+  default_original_price: number;
+  banner_text: string | null;
+  updated_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -145,6 +154,12 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      store_settings: {
+        Row: StoreSettings;
+        Insert: Partial<StoreSettings>;
+        Update: Partial<StoreSettings>;
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

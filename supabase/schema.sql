@@ -174,6 +174,20 @@ $$;
 grant execute on function public.create_order(text, text, text, jsonb) to anon, authenticated;
 
 -- ============================================================
+-- store_settings: singleton row for storefront-wide config
+-- ============================================================
+create table if not exists public.store_settings (
+  id                      int primary key default 1 check (id = 1),
+  wa_admin_number         text not null default '6285128074103',
+  default_price           numeric not null default 20000,
+  default_original_price  numeric not null default 350000,
+  banner_text             text,
+  updated_at              timestamptz not null default now()
+);
+
+insert into public.store_settings (id) values (1) on conflict (id) do nothing;
+
+-- ============================================================
 -- wishlists (optional, requires logged-in account)
 -- ============================================================
 create table if not exists public.wishlists (
@@ -217,6 +231,10 @@ drop trigger if exists trg_orders_updated_at on public.orders;
 create trigger trg_orders_updated_at before update on public.orders
   for each row execute procedure public.set_updated_at();
 
+drop trigger if exists trg_store_settings_updated_at on public.store_settings;
+create trigger trg_store_settings_updated_at before update on public.store_settings
+  for each row execute procedure public.set_updated_at();
+
 -- ============================================================
 -- RLS
 -- ============================================================
@@ -235,8 +253,9 @@ alter table public.game_media  enable row level security;
 alter table public.profiles    enable row level security;
 alter table public.orders      enable row level security;
 alter table public.order_items enable row level security;
-alter table public.wishlists   enable row level security;
-alter table public.import_jobs enable row level security;
+alter table public.wishlists      enable row level security;
+alter table public.import_jobs    enable row level security;
+alter table public.store_settings enable row level security;
 
 -- categories: public read, admin write
 create policy "categories_public_read" on public.categories for select using (true);
@@ -270,6 +289,10 @@ create policy "wishlists_owner_all" on public.wishlists for all using (user_id =
 
 -- import_jobs: admin only
 create policy "import_jobs_admin_all" on public.import_jobs for all using (public.is_admin()) with check (public.is_admin());
+
+-- store_settings: public read (storefront needs WA number/banner), admin write
+create policy "store_settings_public_read" on public.store_settings for select using (true);
+create policy "store_settings_admin_write" on public.store_settings for update using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================
 -- Storage bucket for normalized cover art (create via dashboard
