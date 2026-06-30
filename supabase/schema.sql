@@ -188,6 +188,21 @@ create table if not exists public.store_settings (
 insert into public.store_settings (id) values (1) on conflict (id) do nothing;
 
 -- ============================================================
+-- reviews: user ratings + testimonials per game
+-- ============================================================
+create table if not exists public.reviews (
+  id          uuid primary key default gen_random_uuid(),
+  game_id     uuid not null references public.games(id) on delete cascade,
+  user_id     uuid not null references public.profiles(id) on delete cascade,
+  rating      smallint not null check (rating between 1 and 5),
+  comment     text,
+  created_at  timestamptz not null default now(),
+  unique (game_id, user_id)
+);
+
+create index if not exists idx_reviews_game on public.reviews (game_id);
+
+-- ============================================================
 -- wishlists (optional, requires logged-in account)
 -- ============================================================
 create table if not exists public.wishlists (
@@ -253,6 +268,7 @@ alter table public.game_media  enable row level security;
 alter table public.profiles    enable row level security;
 alter table public.orders      enable row level security;
 alter table public.order_items enable row level security;
+alter table public.reviews        enable row level security;
 alter table public.wishlists      enable row level security;
 alter table public.import_jobs    enable row level security;
 alter table public.store_settings enable row level security;
@@ -283,6 +299,12 @@ create policy "orders_admin_update" on public.orders for update using (public.is
 create policy "order_items_owner_read" on public.order_items for select using (
   exists (select 1 from public.orders o where o.id = order_id and (o.user_id = auth.uid() or public.is_admin()))
 );
+
+-- reviews: public read, owner insert/update/delete, admin can delete any
+create policy "reviews_public_read" on public.reviews for select using (true);
+create policy "reviews_owner_insert" on public.reviews for insert with check (user_id = auth.uid());
+create policy "reviews_owner_update" on public.reviews for update using (user_id = auth.uid());
+create policy "reviews_owner_delete" on public.reviews for delete using (user_id = auth.uid() or public.is_admin());
 
 -- wishlists: owner only
 create policy "wishlists_owner_all" on public.wishlists for all using (user_id = auth.uid()) with check (user_id = auth.uid());

@@ -88,6 +88,15 @@ export type Profile = {
   created_at: string;
 };
 
+export type Review = {
+  id: string;
+  game_id: string;
+  user_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+};
+
 export type StoreSettings = {
   id: number;
   wa_admin_number: string;
@@ -151,6 +160,27 @@ export type Database = {
             columns: ["order_id"];
             isOneToOne: false;
             referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      reviews: {
+        Row: Review;
+        Insert: Partial<Review>;
+        Update: Partial<Review>;
+        Relationships: [
+          {
+            foreignKeyName: "reviews_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reviews_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
