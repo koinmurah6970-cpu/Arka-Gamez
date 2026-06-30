@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useTransition } from "react";
 import { CATEGORY_ALL } from "@/lib/constants";
 import type { Category } from "@/lib/supabase/types";
 
@@ -8,6 +9,7 @@ export function CategoryFilter({ categories }: { categories: Category[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const active = searchParams.get("kategori") ?? CATEGORY_ALL;
 
   function select(name: string) {
@@ -18,13 +20,22 @@ export function CategoryFilter({ categories }: { categories: Category[] }) {
       params.set("kategori", name);
     }
     params.delete("page");
-    router.push(`${pathname}?${params.toString()}`);
+    // replace (not push) so flipping through categories doesn't pile up
+    // back-button history; wrapped in startTransition so the active tag
+    // can show pending feedback instantly instead of feeling frozen.
+    startTransition(() => {
+      router.replace(`${pathname}?${params.toString()}`);
+    });
   }
 
   const tags = [CATEGORY_ALL, ...categories.map((c) => c.name)];
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar max-w-4xl">
+    <div
+      className={`flex gap-2 overflow-x-auto pb-4 no-scrollbar max-w-4xl transition-opacity ${
+        isPending ? "opacity-50" : ""
+      }`}
+    >
       {tags.map((tag) => (
         <div
           key={tag}
