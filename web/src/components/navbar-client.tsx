@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 export function NavbarClient({
   user,
 }: {
-  user: { email: string; role: string } | null;
+  user: { displayName: string; role: string } | null;
 }) {
   const { count } = useCart();
   const router = useRouter();
@@ -78,9 +78,9 @@ export function NavbarClient({
                 className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 transition"
               >
                 <span className="h-6 w-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                  {user.email.charAt(0).toUpperCase()}
+                  {user.displayName.charAt(0).toUpperCase()}
                 </span>
-                <span className="hidden sm:inline max-w-[120px] truncate">{user.email}</span>
+                <span className="hidden sm:inline max-w-[120px] truncate">{user.displayName}</span>
                 <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -90,7 +90,7 @@ export function NavbarClient({
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
                   <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-1">
-                    <p className="px-4 py-2 text-xs text-gray-400 truncate">{user.email}</p>
+                    <p className="px-4 py-2 text-xs text-gray-400 truncate">{user.displayName}</p>
                     <div className="border-t border-gray-100" />
                     <Link
                       href="/cek-pesanan"

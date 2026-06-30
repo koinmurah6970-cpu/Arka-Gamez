@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { usernameToEmail } from "@/lib/auth-helpers";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justRegistered = searchParams.get("registered") === "1";
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -22,12 +23,12 @@ export default function LoginPage() {
 
     const supabase = createClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
+      email: usernameToEmail(username),
       password,
     });
 
     if (signInError) {
-      setError("Email atau password salah.");
+      setError("Username atau password salah.");
       setSubmitting(false);
       return;
     }
@@ -72,12 +73,13 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Email</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Username</label>
             <input
-              type="email"
+              type="text"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="contoh: admin"
               className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition"
             />
           </div>

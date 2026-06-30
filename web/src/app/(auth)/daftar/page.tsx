@@ -4,17 +4,26 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { usernameToEmail } from "@/lib/auth-helpers";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (username.length < 3) {
+      setError("Username minimal 3 karakter.");
+      return;
+    }
+    if (/[^a-zA-Z0-9._-]/.test(username)) {
+      setError("Username hanya boleh huruf, angka, titik, underscore, dan strip.");
+      return;
+    }
     if (password.length < 6) {
       setError("Password minimal 6 karakter.");
       return;
@@ -24,15 +33,17 @@ export default function RegisterPage() {
 
     const supabase = createClient();
     const { error: signUpError } = await supabase.auth.signUp({
-      email,
+      email: usernameToEmail(username),
       password,
-      options: { data: { full_name: fullName } },
+      options: { data: { full_name: fullName, username } },
     });
 
     if (signUpError) {
-      setError(signUpError.message === "User already registered"
-        ? "Email ini sudah terdaftar."
-        : signUpError.message);
+      if (signUpError.message === "User already registered") {
+        setError("Username ini sudah dipakai.");
+      } else {
+        setError(signUpError.message);
+      }
       setSubmitting(false);
       return;
     }
@@ -65,14 +76,16 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Email</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Username</label>
             <input
-              type="email"
+              type="text"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="contoh: rezagamer"
               className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition"
             />
+            <p className="text-xs text-gray-400 mt-1">Huruf, angka, titik, underscore — minimal 3 karakter</p>
           </div>
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Password</label>

@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
+import { emailToUsername } from "@/lib/auth-helpers";
 import { NavbarClient } from "./navbar-client";
 
 export async function Navbar() {
-  let user: { email: string; role: string } | null = null;
+  let user: { displayName: string; role: string } | null = null;
 
   try {
     const supabase = await createClient();
@@ -13,12 +14,16 @@ export async function Navbar() {
     if (authUser) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, full_name")
         .eq("id", authUser.id)
         .single();
 
+      const username = authUser.user_metadata?.username as string | undefined;
+      const displayName =
+        profile?.full_name || username || emailToUsername(authUser.email ?? "");
+
       user = {
-        email: authUser.email ?? "",
+        displayName,
         role: profile?.role ?? "customer",
       };
     }
