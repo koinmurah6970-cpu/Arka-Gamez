@@ -47,6 +47,7 @@ export function ProductCard({ game }: { game: GameCardData }) {
             src={game.cover_url}
             alt={game.name}
             fill
+            unoptimized
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
             className="cover-img object-cover"
           />

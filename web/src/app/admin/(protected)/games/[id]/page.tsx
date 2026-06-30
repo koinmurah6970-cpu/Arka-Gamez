@@ -43,7 +43,7 @@ export default async function EditGamePage({
           <div>
             <div className="cover-container border border-gray-200">
               {game.cover_url && (
-                <Image src={game.cover_url} alt={game.name} fill className="cover-img object-cover" />
+                <Image src={game.cover_url} alt={game.name} fill unoptimized className="cover-img object-cover" />
               )}
             </div>
             <label className="block mt-2">

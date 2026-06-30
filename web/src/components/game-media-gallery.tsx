@@ -28,12 +28,19 @@ export function GameMediaGallery({
           ]
         : [];
 
+  const isCoverOnly = media.length === 0 && !!fallbackImage;
   const [activeIndex, setActiveIndex] = useState(0);
   const active = items[activeIndex];
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="bg-black rounded-2xl overflow-hidden shadow-md aspect-video relative border border-gray-100 flex items-center justify-center">
+      <div
+        className={`rounded-2xl overflow-hidden shadow-md relative border border-gray-100 flex items-center justify-center ${
+          isCoverOnly
+            ? "aspect-[3/4] max-h-[520px] mx-auto bg-gray-100"
+            : "aspect-video bg-black"
+        }`}
+      >
         {!active && (
           <span className="text-gray-500 text-sm">Belum ada media</span>
         )}
@@ -49,7 +56,7 @@ export function GameMediaGallery({
           <img
             src={active.url}
             alt={gameName}
-            className="w-full h-full object-cover"
+            className={`w-full h-full ${isCoverOnly ? "object-contain" : "object-cover"}`}
           />
         ) : null}
       </div>
