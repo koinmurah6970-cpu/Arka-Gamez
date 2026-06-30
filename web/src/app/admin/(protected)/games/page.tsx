@@ -127,8 +127,8 @@ export default async function AdminGamesPage({
         </button>
       </form>
 
-      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-        <table className="w-full text-sm">
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
             <tr>
               <th className="text-left px-4 py-3">Game</th>
