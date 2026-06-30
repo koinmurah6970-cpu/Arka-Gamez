@@ -8,7 +8,7 @@ import type { GameStatus } from "@/lib/supabase/types";
 
 const VALID_STATUSES: GameStatus[] = ["draft", "active", "archived"];
 
-const ADMIN_PAGE_SIZE = 50;
+const ADMIN_PAGE_SIZE = 25;
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -146,7 +146,7 @@ export default async function AdminGamesPage({
                   <div className="flex items-center gap-3">
                     <div className="relative h-12 w-9 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
                       {game.cover_url && (
-                        <Image src={game.cover_url} alt={game.name} fill sizes="36px" className="object-cover" />
+                        <Image src={game.cover_url} alt={game.name} fill sizes="36px" quality={40} className="object-cover" />
                       )}
                     </div>
                     <span className="font-semibold text-gray-800 line-clamp-1">{game.name}</span>

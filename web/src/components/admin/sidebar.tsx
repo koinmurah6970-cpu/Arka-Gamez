@@ -112,28 +112,41 @@ export function AdminSidebar({ displayName }: { displayName: string }) {
     <>
       {/* Mobile hamburger */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#0b0f19] border-b border-white/[0.06] px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
+        <Link href="/admin" className="flex items-center gap-2.5">
           <div className="h-7 w-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center font-black italic text-xs text-white">
             G
           </div>
           <span className="font-bold text-sm text-white">GAMOS</span>
           <span className="text-[9px] font-semibold text-gray-500 bg-white/[0.06] px-1.5 py-0.5 rounded">ADMIN</span>
-        </div>
-        <button
-          onClick={() => setOpen(!open)}
-          className="p-1.5 rounded-lg hover:bg-white/10 transition text-gray-300"
-          aria-label="Toggle menu"
-        >
-          {open ? (
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+        </Link>
+        <div className="flex items-center gap-1">
+          {pathname !== "/admin" && (
+            <Link
+              href="/admin"
+              aria-label="Kembali ke Dashboard"
+              className="p-1.5 rounded-lg hover:bg-white/10 transition text-gray-300"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" />
+              </svg>
+            </Link>
           )}
-        </button>
+          <button
+            onClick={() => setOpen(!open)}
+            className="p-1.5 rounded-lg hover:bg-white/10 transition text-gray-300"
+            aria-label="Toggle menu"
+          >
+            {open ? (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Mobile overlay */}
