@@ -6,7 +6,14 @@ import { formatPrice, discountPercent } from "@/lib/format";
 import { useCart } from "./cart-context";
 import type { Game } from "@/lib/supabase/types";
 
-export function ProductCard({ game }: { game: Game }) {
+// Only the fields the grid card actually renders -- keeps the catalog list
+// query from pulling heavier columns (description, etc.) across 24 rows.
+export type GameCardData = Pick<
+  Game,
+  "id" | "slug" | "name" | "price" | "original_price" | "cover_url" | "is_new"
+>;
+
+export function ProductCard({ game }: { game: GameCardData }) {
   const { addItem, items } = useCart();
   const inCart = items.some((i) => i.gameId === game.id);
   const discount = discountPercent(game.price, game.original_price);

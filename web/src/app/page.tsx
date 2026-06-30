@@ -1,10 +1,29 @@
 import { Suspense } from "react";
+import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createPublicClient } from "@/lib/supabase/public";
 import { ProductCard } from "@/components/product-card";
 import { SearchBar } from "@/components/search-bar";
 import { CategoryFilter } from "@/components/category-filter";
 import { Pagination } from "@/components/pagination";
 import { PAGE_SIZE } from "@/lib/constants";
+
+// Categories barely ever change -- cache them instead of round-tripping to
+// Supabase on every single catalog request. Uses the plain (cookie-less)
+// client since `unstable_cache` can't wrap request-bound APIs like cookies().
+const getCategories = unstable_cache(
+  async () => {
+    const supabase = createPublicClient();
+    const { data } = await supabase.from("categories").select("*").order("sort_order");
+    return data ?? [];
+  },
+  ["catalog-categories"],
+  { revalidate: 300 }
+);
+
+// Only the columns ProductCard renders -- selecting "*" here would drag
+// `description` and other unused columns across every one of the 24 rows.
+const GAME_CARD_FIELDS = "id, slug, name, price, original_price, cover_url, is_new";
 
 export default async function HomePage({
   searchParams,
@@ -18,28 +37,29 @@ export default async function HomePage({
 
   const supabase = await createClient();
 
-  // category filter is applied via the embedded join (`!inner` forces it to
-  // actually restrict the parent rows, not just the embedded payload), so
-  // this query never has to wait on the categories list resolving first --
-  // both run as a single parallel round-trip instead of two sequential ones.
+  // categories is cached (see getCategories above), so resolving the
+  // category name -> id here is effectively free after the first request --
+  // no need to fight Supabase's select-string type parser with a dynamic
+  // embedded-join filter just to avoid a "sequential" round-trip that no
+  // longer exists.
+  const categories = await getCategories();
+
   let query = supabase
     .from("games")
-    .select(kategori ? "*, category:categories!inner(*)" : "*, category:categories(*)", {
-      count: "exact",
-    })
+    .select(GAME_CARD_FIELDS, { count: "exact" })
     .eq("status", "active");
 
   if (q) query = query.ilike("name", `%${q}%`);
-  if (kategori) query = query.eq("category.name", kategori);
+  if (kategori) {
+    const cat = categories.find((c) => c.name === kategori);
+    if (cat) query = query.eq("category_id", cat.id);
+  }
 
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
-  query = query.order("created_at", { ascending: false }).range(from, to);
-
-  const [{ data: categories }, { data: games, count }] = await Promise.all([
-    supabase.from("categories").select("*").order("sort_order"),
-    query,
-  ]);
+  const { data: games, count } = await query
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
@@ -56,7 +76,7 @@ export default async function HomePage({
         <SearchBar />
       </Suspense>
       <Suspense fallback={<div className="h-[40px]" />}>
-        <CategoryFilter categories={categories ?? []} />
+        <CategoryFilter categories={categories} />
       </Suspense>
 
       {games && games.length > 0 ? (
