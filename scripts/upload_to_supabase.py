@@ -30,9 +30,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
-load_dotenv()
-
 ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(ROOT / ".env")
 INPUT_CSV = ROOT / "data" / "games_import.csv"
 FAILURES_CSV = ROOT / "data" / "upload_failures.csv"
 

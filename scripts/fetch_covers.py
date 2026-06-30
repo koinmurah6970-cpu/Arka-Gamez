@@ -36,9 +36,11 @@ from pathlib import Path
 from urllib.parse import quote
 
 import requests
+from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(ROOT / ".env")
 DATA_DIR = ROOT / "data"
 COVERS_DIR = DATA_DIR / "covers"
 INPUT_CSV = DATA_DIR / "games_raw.csv"

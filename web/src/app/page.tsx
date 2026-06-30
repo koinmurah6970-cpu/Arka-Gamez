@@ -18,27 +18,28 @@ export default async function HomePage({
 
   const supabase = await createClient();
 
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("*")
-    .order("sort_order");
-
+  // category filter is applied via the embedded join (`!inner` forces it to
+  // actually restrict the parent rows, not just the embedded payload), so
+  // this query never has to wait on the categories list resolving first --
+  // both run as a single parallel round-trip instead of two sequential ones.
   let query = supabase
     .from("games")
-    .select("*, category:categories(*)", { count: "exact" })
+    .select(kategori ? "*, category:categories!inner(*)" : "*, category:categories(*)", {
+      count: "exact",
+    })
     .eq("status", "active");
 
   if (q) query = query.ilike("name", `%${q}%`);
-  if (kategori) {
-    const cat = categories?.find((c) => c.name === kategori);
-    if (cat) query = query.eq("category_id", cat.id);
-  }
+  if (kategori) query = query.eq("category.name", kategori);
 
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
-  const { data: games, count } = await query
-    .order("created_at", { ascending: false })
-    .range(from, to);
+  query = query.order("created_at", { ascending: false }).range(from, to);
+
+  const [{ data: categories }, { data: games, count }] = await Promise.all([
+    supabase.from("categories").select("*").order("sort_order"),
+    query,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
