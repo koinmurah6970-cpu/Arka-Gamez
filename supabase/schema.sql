@@ -202,6 +202,9 @@ create table if not exists public.reviews (
 
 create index if not exists idx_reviews_game on public.reviews (game_id);
 
+-- Enable Realtime for reviews so clients get live updates
+alter publication supabase_realtime add table public.reviews;
+
 -- ============================================================
 -- wishlists (optional, requires logged-in account)
 -- ============================================================

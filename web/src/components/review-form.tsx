@@ -9,10 +9,12 @@ import { StarRatingInput } from "./star-rating";
 export function ReviewForm({
   gameId,
   userId,
+  hasOrdered,
   existingReview,
 }: {
   gameId: string;
   userId: string | null;
+  hasOrdered: boolean;
   existingReview: { id: string; rating: number; comment: string | null } | null;
 }) {
   const router = useRouter();
@@ -30,6 +32,16 @@ export function ReviewForm({
             Masuk
           </Link>{" "}
           untuk memberikan review.
+        </p>
+      </div>
+    );
+  }
+
+  if (!hasOrdered) {
+    return (
+      <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 text-center">
+        <p className="text-sm text-gray-500">
+          Kamu harus membeli game ini dulu sebelum bisa kasih review.
         </p>
       </div>
     );
