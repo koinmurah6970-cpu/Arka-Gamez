@@ -1,14 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { usernameToEmail } from "@/lib/auth-helpers";
 
-export default function AdminLoginPage() {
-  const router = useRouter();
+function ForbiddenNotice() {
   const searchParams = useSearchParams();
   const forbidden = searchParams.get("error") === "forbidden";
+
+  if (!forbidden) return null;
+
+  return (
+    <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-3 mb-4">
+      Akun ini gak punya akses admin.
+    </p>
+  );
+}
+
+export default function AdminLoginPage() {
+  const router = useRouter();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -66,11 +77,9 @@ export default function AdminLoginPage() {
           </h1>
         </div>
 
-        {forbidden && (
-          <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-3 mb-4">
-            Akun ini gak punya akses admin.
-          </p>
-        )}
+        <Suspense fallback={null}>
+          <ForbiddenNotice />
+        </Suspense>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
