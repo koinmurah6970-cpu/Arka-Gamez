@@ -112,7 +112,7 @@ export async function StorefrontHero() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Link
             href="/"
             className="rounded-2xl border border-border-subtle bg-gradient-to-br from-indigo-500/[0.08] to-transparent p-4 hover:border-accent/30 transition"

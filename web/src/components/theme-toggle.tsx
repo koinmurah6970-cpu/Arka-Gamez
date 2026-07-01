@@ -12,9 +12,22 @@ export function ThemeToggle() {
 
   function toggle() {
     const next = !isDark;
+
+    // Dozens of elements across the page carry a `transition`/`transition-all`
+    // class meant for hover states -- those same properties (background/border/
+    // text color) are what change on a theme swap, so without this they'd all
+    // fade in sequence instead of switching at once, which reads as lag.
+    const style = document.createElement("style");
+    style.textContent = "*{transition:none!important}";
+    document.head.appendChild(style);
+
     setIsDark(next);
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("theme", next ? "dark" : "light");
+
+    requestAnimationFrame(() => {
+      document.head.removeChild(style);
+    });
   }
 
   return (

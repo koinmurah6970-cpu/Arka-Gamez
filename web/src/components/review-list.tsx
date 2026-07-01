@@ -96,25 +96,23 @@ export function ReviewList({
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4">
-        {reviews.length > 0 ? (
-          <>
-            <StarRating rating={avgRating} size="md" />
-            <span className="text-sm font-bold text-foreground">
-              {avgRating.toFixed(1)}
-            </span>
-            <span className="text-xs text-muted">
-              ({reviews.length} review)
-            </span>
-          </>
-        ) : (
-          <span className="text-xs text-muted">Belum ada review</span>
-        )}
-      </div>
+      {reviews.length > 0 && (
+        <div className="flex items-center gap-2 mb-4">
+          <StarRating rating={avgRating} size="md" />
+          <span className="text-sm font-bold text-foreground">
+            {avgRating.toFixed(1)}
+          </span>
+          <span className="text-xs text-muted">
+            ({reviews.length} review)
+          </span>
+        </div>
+      )}
 
       {reviews.length === 0 ? (
-        <div className="text-center py-8 text-muted text-sm">
-          Jadilah yang pertama kasih review!
+        <div className="bg-surface rounded-xl border border-border-subtle p-4 text-center">
+          <p className="text-sm text-muted">
+            Belum ada review. Jadilah yang pertama kasih review!
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
