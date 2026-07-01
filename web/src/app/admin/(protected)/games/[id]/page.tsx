@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { updateGame, deleteGame } from "../actions";
+import { CoverCropTool } from "./cover-crop-tool";
 
 export default async function EditGamePage({
   params,
@@ -62,6 +63,7 @@ export default async function EditGamePage({
               Sumber sekarang:{" "}
               <span className="font-semibold">{game.cover_source ?? "placeholder"}</span>
             </p>
+            <CoverCropTool gameId={game.id} gameName={game.name} />
           </div>
 
           <div className="space-y-4">

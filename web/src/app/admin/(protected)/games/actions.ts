@@ -55,6 +55,84 @@ export async function updateGame(id: string, formData: FormData) {
   redirect("/admin/games");
 }
 
+// Re-discovers a fresh, uncropped candidate cover for a game by name --
+// same sources the cover ETL pipeline uses (scripts/fetch_covers.py), just
+// called live from the admin UI instead of the offline batch script.
+export async function findOriginalCover(gameId: string): Promise<{ url: string } | { error: string }> {
+  const supabase = await createClient();
+  const { data: game } = await supabase.from("games").select("name").eq("id", gameId).single();
+  if (!game) return { error: "Game tidak ditemukan." };
+
+  const sgdbKey = process.env.STEAMGRIDDB_API_KEY;
+  if (sgdbKey) {
+    try {
+      const searchRes = await fetch(
+        `https://www.steamgriddb.com/api/v2/search/autocomplete/${encodeURIComponent(game.name)}`,
+        { headers: { Authorization: `Bearer ${sgdbKey}` } }
+      );
+      const searchData = await searchRes.json();
+      if (searchData?.success && searchData.data?.length) {
+        const gridRes = await fetch(
+          `https://www.steamgriddb.com/api/v2/grids/game/${searchData.data[0].id}?types=static`,
+          { headers: { Authorization: `Bearer ${sgdbKey}` } }
+        );
+        const gridData = await gridRes.json();
+        if (gridData?.success && gridData.data?.length) {
+          const best = gridData.data.reduce((a: { score: number }, b: { score: number }) =>
+            (b.score ?? 0) > (a.score ?? 0) ? b : a
+          );
+          return { url: best.url };
+        }
+      }
+    } catch {
+      // fall through to RAWG
+    }
+  }
+
+  const rawgKey = process.env.RAWG_API_KEY;
+  if (rawgKey) {
+    try {
+      const res = await fetch(
+        `https://api.rawg.io/api/games?key=${rawgKey}&search=${encodeURIComponent(game.name)}&page_size=1`
+      );
+      const data = await res.json();
+      const bg = data?.results?.[0]?.background_image;
+      if (bg) return { url: bg };
+    } catch {
+      // fall through to error below
+    }
+  }
+
+  return { error: "Gambar asli gak ketemu di SteamGridDB atau RAWG." };
+}
+
+export async function saveCroppedCover(gameId: string, formData: FormData) {
+  const supabase = await createClient();
+  const croppedFile = formData.get("cropped_file");
+  if (!(croppedFile instanceof File) || croppedFile.size === 0) {
+    throw new Error("Gak ada file hasil crop.");
+  }
+
+  const { data: game } = await supabase.from("games").select("slug").eq("id", gameId).single();
+  if (!game) throw new Error("Game tidak ditemukan.");
+
+  const path = `${game.slug}.webp`;
+  const { error: uploadError } = await supabase.storage
+    .from("game-covers")
+    .upload(path, croppedFile, { upsert: true, contentType: "image/webp" });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { data: publicUrl } = supabase.storage.from("game-covers").getPublicUrl(path);
+  await supabase
+    .from("games")
+    .update({ cover_url: `${publicUrl.publicUrl}?v=${Date.now()}`, cover_source: "manual" })
+    .eq("id", gameId);
+
+  revalidatePath("/admin/games");
+  revalidatePath(`/admin/games/${gameId}`);
+  revalidatePath("/");
+}
+
 export async function createGame(formData: FormData) {
   const supabase = await createClient();
 
