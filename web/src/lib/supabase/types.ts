@@ -106,6 +106,15 @@ export type StoreSettings = {
   updated_at: string;
 };
 
+export type PromoCard = {
+  id: string;
+  title: string;
+  description: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -189,6 +198,12 @@ export type Database = {
         Row: StoreSettings;
         Insert: Partial<StoreSettings>;
         Update: Partial<StoreSettings>;
+        Relationships: [];
+      };
+      promo_cards: {
+        Row: PromoCard;
+        Insert: Partial<PromoCard>;
+        Update: Partial<PromoCard>;
         Relationships: [];
       };
     };

@@ -188,6 +188,20 @@ create table if not exists public.store_settings (
 insert into public.store_settings (id) values (1) on conflict (id) do nothing;
 
 -- ============================================================
+-- promo_cards: admin-editable promo cards shown on /promo
+-- ============================================================
+create table if not exists public.promo_cards (
+  id          uuid primary key default gen_random_uuid(),
+  title       text not null,
+  description text,
+  sort_order  int not null default 0,
+  is_active   boolean not null default true,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists idx_promo_cards_active on public.promo_cards (is_active);
+
+-- ============================================================
 -- reviews: user ratings + testimonials per game
 -- ============================================================
 create table if not exists public.reviews (
@@ -275,6 +289,7 @@ alter table public.reviews        enable row level security;
 alter table public.wishlists      enable row level security;
 alter table public.import_jobs    enable row level security;
 alter table public.store_settings enable row level security;
+alter table public.promo_cards    enable row level security;
 
 -- categories: public read, admin write
 create policy "categories_public_read" on public.categories for select using (true);
@@ -318,6 +333,10 @@ create policy "import_jobs_admin_all" on public.import_jobs for all using (publi
 -- store_settings: public read (storefront needs WA number/banner), admin write
 create policy "store_settings_public_read" on public.store_settings for select using (true);
 create policy "store_settings_admin_write" on public.store_settings for update using (public.is_admin()) with check (public.is_admin());
+
+-- promo_cards: public sees only active cards, admin sees/edits everything
+create policy "promo_cards_public_read" on public.promo_cards for select using (is_active = true or public.is_admin());
+create policy "promo_cards_admin_write" on public.promo_cards for all using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================
 -- Storage bucket for normalized cover art (create via dashboard
