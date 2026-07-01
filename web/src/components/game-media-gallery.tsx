@@ -4,6 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import type { GameMedia } from "@/lib/supabase/types";
 
+function getYouTubeId(url: string): string | null {
+  const match = url.match(
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/
+  );
+  return match ? match[1] : null;
+}
+
 function HlsVideo({ src, poster }: { src: string; poster?: string | null }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -29,6 +36,22 @@ function HlsVideo({ src, poster }: { src: string; poster?: string | null }) {
       className="w-full h-full"
     />
   );
+}
+
+function VideoPlayer({ src, poster }: { src: string; poster?: string | null }) {
+  const youtubeId = getYouTubeId(src);
+  if (youtubeId) {
+    return (
+      <iframe
+        src={`https://www.youtube.com/embed/${youtubeId}`}
+        title="Video trailer"
+        className="w-full h-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+  return <HlsVideo src={src} poster={poster} />;
 }
 
 export function GameMediaGallery({
@@ -73,7 +96,7 @@ export function GameMediaGallery({
           <span className="text-muted text-sm">Belum ada media</span>
         )}
         {active?.media_type === "video" ? (
-          <HlsVideo key={active.url} src={active.url} poster={active.thumbnail_url} />
+          <VideoPlayer key={active.url} src={active.url} poster={active.thumbnail_url} />
         ) : active ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
