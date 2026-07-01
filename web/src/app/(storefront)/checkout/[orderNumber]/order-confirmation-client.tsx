@@ -64,24 +64,24 @@ export default function OrderConfirmationClient({
   return (
     <main className="container mx-auto px-4 py-8 max-w-xl text-center">
       <div className="text-5xl mb-4">✅</div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">Pesanan Dibuat!</h2>
-      <p className="text-sm text-gray-500 mb-6">
-        Nomor pesanan kamu: <span className="font-bold text-gray-800">{orderNumber}</span>
+      <h1 className="text-2xl font-bold text-foreground mb-2">Pesanan Dibuat!</h1>
+      <p className="text-sm text-muted mb-6">
+        Nomor pesanan kamu: <span className="font-bold text-foreground">{orderNumber}</span>
       </p>
 
       {order && (
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 text-left">
-          <p className="text-xs font-bold text-gray-500 mb-2 uppercase">Rincian Item:</p>
-          <div className="text-xs text-gray-700 space-y-1">
+        <div className="bg-surface p-4 rounded-xl border border-border-subtle mb-6 text-left">
+          <p className="text-xs font-bold text-muted mb-2 uppercase">Rincian Item:</p>
+          <div className="text-xs text-foreground space-y-1">
             {order.items.map((item, idx) => (
               <p key={item.gameId}>
                 {idx + 1}. {item.name}
               </p>
             ))}
           </div>
-          <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200 font-bold">
-            <span className="text-xs text-gray-500">Total Akhir:</span>
-            <span className="text-sm text-blue-600 font-extrabold">
+          <div className="flex justify-between items-center mt-3 pt-3 border-t border-border-subtle font-bold">
+            <span className="text-xs text-muted">Total Akhir:</span>
+            <span className="text-sm text-accent font-extrabold">
               {formatPrice(order.total)}
             </span>
           </div>
@@ -96,7 +96,7 @@ export default function OrderConfirmationClient({
       >
         Hubungi Admin Via WhatsApp
       </a>
-      <Link href="/" className="text-blue-600 font-semibold text-sm hover:underline">
+      <Link href="/" className="text-accent font-semibold text-sm hover:underline">
         Kembali ke katalog
       </Link>
     </main>

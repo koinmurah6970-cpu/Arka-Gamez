@@ -53,18 +53,18 @@ export default async function CekPesananPage({
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-xl">
-      <h2 className="text-2xl font-bold text-gray-900 mb-1">Cek Pesanan</h2>
-      <p className="text-xs text-gray-400 mb-6">
+      <h1 className="text-2xl font-bold text-foreground mb-1">Cek Pesanan</h1>
+      <p className="text-xs text-muted mb-6">
         Masukkan nomor pesanan untuk melihat status terbaru.
       </p>
 
       <OrderSearchForm defaultValue={q} />
 
       {notFound && (
-        <div className="mt-6 text-center py-12 bg-gray-50 rounded-2xl border border-gray-200">
+        <div className="mt-6 text-center py-12 bg-surface rounded-2xl border border-border-subtle">
           <p className="text-3xl mb-2">🔍</p>
-          <p className="text-sm text-gray-500 font-semibold">Pesanan tidak ditemukan.</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-sm text-foreground font-semibold">Pesanan tidak ditemukan.</p>
+          <p className="text-xs text-muted mt-1">
             Pastikan nomor pesanan sudah benar (contoh: GAM-XXXXXX).
           </p>
         </div>
@@ -72,18 +72,18 @@ export default async function CekPesananPage({
 
       {order && (
         <div className="mt-6 space-y-4">
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+          <div className="bg-surface border border-border-subtle rounded-2xl p-5">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="font-mono text-sm font-bold text-gray-800">
+                <p className="font-mono text-sm font-bold text-foreground">
                   {order.order_number}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-muted mt-0.5">
                   {new Date(order.created_at).toLocaleString("id-ID")}
                 </p>
               </div>
               {isCancelled && (
-                <span className="text-xs font-bold bg-red-50 text-red-600 px-2.5 py-1 rounded-lg">
+                <span className="text-xs font-bold bg-red-500/10 text-red-500 px-2.5 py-1 rounded-lg">
                   Dibatalkan
                 </span>
               )}
@@ -99,26 +99,19 @@ export default async function CekPesananPage({
                       <div
                         className={`h-3 w-3 rounded-full border-2 mb-1.5 ${
                           active
-                            ? "border-blue-600 bg-blue-600 ring-4 ring-blue-100"
+                            ? "border-accent bg-accent ring-4 ring-accent/20"
                             : done
                               ? "border-emerald-500 bg-emerald-500"
-                              : "border-gray-200 bg-white"
+                              : "border-border-subtle bg-background"
                         }`}
                       />
                       <span
                         className={`text-[10px] font-semibold text-center leading-tight ${
-                          active ? "text-blue-600" : done ? "text-emerald-600" : "text-gray-300"
+                          active ? "text-accent" : done ? "text-emerald-500" : "text-muted"
                         }`}
                       >
                         {step.label}
                       </span>
-                      {idx < STATUS_STEPS.length - 1 && (
-                        <div
-                          className={`hidden ${
-                            done ? "bg-emerald-400" : "bg-gray-200"
-                          }`}
-                        />
-                      )}
                     </div>
                   );
                 })}
@@ -126,35 +119,35 @@ export default async function CekPesananPage({
             )}
 
             {isCancelled && (
-              <p className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-3 mb-4">
+              <p className="text-sm text-red-500 bg-red-500/10 rounded-xl px-4 py-3 mb-4">
                 Pesanan ini telah dibatalkan oleh admin. Silakan hubungi admin jika ada pertanyaan.
               </p>
             )}
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-            <h3 className="text-xs font-bold text-gray-500 uppercase mb-3">Item Pesanan</h3>
+          <div className="bg-surface border border-border-subtle rounded-2xl p-5">
+            <h3 className="text-xs font-bold text-muted uppercase mb-3">Item Pesanan</h3>
             <div className="space-y-2">
               {(items ?? []).map((item) => (
                 <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-gray-700">{item.game_name_snapshot}</span>
-                  <span className="text-gray-400">{formatPrice(item.price)}</span>
+                  <span className="text-foreground">{item.game_name_snapshot}</span>
+                  <span className="text-muted">{formatPrice(item.price)}</span>
                 </div>
               ))}
             </div>
-            <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 font-bold">
-              <span className="text-xs text-gray-500">Total</span>
-              <span className="text-blue-600">{formatPrice(order.total)}</span>
+            <div className="flex justify-between items-center mt-3 pt-3 border-t border-border-subtle font-bold">
+              <span className="text-xs text-muted">Total</span>
+              <span className="text-accent">{formatPrice(order.total)}</span>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-            <h3 className="text-xs font-bold text-gray-500 uppercase mb-3">Data Pemesanan</h3>
+          <div className="bg-surface border border-border-subtle rounded-2xl p-5">
+            <h3 className="text-xs font-bold text-muted uppercase mb-3">Data Pemesanan</h3>
             <dl className="grid grid-cols-2 gap-y-2 text-sm">
-              <dt className="text-gray-400">Nama</dt>
-              <dd className="text-gray-800">{order.guest_name ?? "-"}</dd>
-              <dt className="text-gray-400">Player ID</dt>
-              <dd className="text-gray-800">{order.player_id}</dd>
+              <dt className="text-muted">Nama</dt>
+              <dd className="text-foreground">{order.guest_name ?? "-"}</dd>
+              <dt className="text-muted">Player ID</dt>
+              <dd className="text-foreground">{order.player_id}</dd>
             </dl>
           </div>
         </div>
@@ -162,4 +155,3 @@ export default async function CekPesananPage({
     </main>
   );
 }
-

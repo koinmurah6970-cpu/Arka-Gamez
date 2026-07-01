@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 import { CartProvider } from "@/components/cart-context";
 
 export default function StorefrontLayout({
@@ -10,6 +11,7 @@ export default function StorefrontLayout({
     <CartProvider>
       <Navbar />
       {children}
+      <Footer />
     </CartProvider>
   );
 }

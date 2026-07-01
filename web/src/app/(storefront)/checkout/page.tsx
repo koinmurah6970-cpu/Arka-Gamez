@@ -65,10 +65,10 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <main className="container mx-auto px-4 py-8 max-w-xl text-center">
-        <p className="text-gray-400 text-sm py-20">
+        <p className="text-muted text-sm py-20">
           Keranjang kosong, tidak ada yang bisa di-checkout.
         </p>
-        <Link href="/" className="text-blue-600 font-semibold hover:underline">
+        <Link href="/" className="text-accent font-semibold hover:underline">
           Kembali ke katalog
         </Link>
       </main>
@@ -77,59 +77,59 @@ export default function CheckoutPage() {
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-xl">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">🔒 Checkout</h2>
+      <h1 className="text-2xl font-bold text-foreground mb-6">🔒 Checkout</h1>
 
-      <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
-        <p className="text-xs font-bold text-gray-500 mb-2 uppercase">Rincian Item:</p>
-        <div className="text-xs text-gray-700 space-y-1 max-h-[140px] overflow-y-auto">
+      <div className="bg-surface p-4 rounded-xl border border-border-subtle mb-6">
+        <p className="text-xs font-bold text-muted mb-2 uppercase">Rincian Item:</p>
+        <div className="text-xs text-foreground space-y-1 max-h-[140px] overflow-y-auto">
           {items.map((item, idx) => (
             <p key={item.gameId}>
               {idx + 1}. {item.name}
             </p>
           ))}
         </div>
-        <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200 font-bold">
-          <span className="text-xs text-gray-500">Total Akhir:</span>
-          <span className="text-sm text-blue-600 font-extrabold">{formatPrice(total)}</span>
+        <div className="flex justify-between items-center mt-3 pt-3 border-t border-border-subtle font-bold">
+          <span className="text-xs text-muted">Total Akhir:</span>
+          <span className="text-sm text-accent font-extrabold">{formatPrice(total)}</span>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+          <label className="block text-xs font-bold text-muted uppercase mb-2">
             Player ID Akun Game
           </label>
           <input
             value={playerId}
             onChange={(e) => setPlayerId(e.target.value)}
             placeholder="Contoh: RezaID#12345"
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition"
+            className="w-full bg-surface border border-border-subtle rounded-xl p-3 text-sm text-foreground focus:outline-none focus:border-accent transition"
           />
           {errors.playerId && <p className="text-red-500 text-xs mt-1">{errors.playerId}</p>}
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+          <label className="block text-xs font-bold text-muted uppercase mb-2">
             Nama Lengkap
           </label>
           <input
             value={guestName}
             onChange={(e) => setGuestName(e.target.value)}
             placeholder="Nama Anda"
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition"
+            className="w-full bg-surface border border-border-subtle rounded-xl p-3 text-sm text-foreground focus:outline-none focus:border-accent transition"
           />
           {errors.guestName && <p className="text-red-500 text-xs mt-1">{errors.guestName}</p>}
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+          <label className="block text-xs font-bold text-muted uppercase mb-2">
             Nomor WhatsApp
           </label>
           <input
             value={guestWhatsapp}
             onChange={(e) => setGuestWhatsapp(e.target.value)}
             placeholder="0812xxxxxxxx"
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition"
+            className="w-full bg-surface border border-border-subtle rounded-xl p-3 text-sm text-foreground focus:outline-none focus:border-accent transition"
           />
           {errors.guestWhatsapp && (
             <p className="text-red-500 text-xs mt-1">{errors.guestWhatsapp}</p>

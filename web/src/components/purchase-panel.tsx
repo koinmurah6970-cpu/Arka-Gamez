@@ -46,16 +46,16 @@ export function PurchasePanel({ game }: { game: Game }) {
   }
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+    <div className="bg-surface border border-border-subtle rounded-2xl p-6 shadow-xl flex flex-col gap-4">
       <div>
-        <span className="bg-emerald-50 text-emerald-600 text-[11px] font-bold px-2.5 py-1 rounded-md border border-emerald-200/50">
+        <span className="bg-emerald-500/10 text-emerald-500 text-[11px] font-bold px-2.5 py-1 rounded-md border border-emerald-500/20">
           Tersedia
         </span>
       </div>
 
-      <h2 className="text-xl font-bold text-gray-900 tracking-tight">{game.name}</h2>
+      <h1 className="text-xl font-bold text-foreground tracking-tight">{game.name}</h1>
 
-      <div className="flex items-center gap-2 text-xs text-gray-500">
+      <div className="flex items-center gap-2 text-xs text-muted">
         <span className="text-yellow-500 flex items-center gap-1">⭐ {game.rating ?? 4.5}</span>
         <span>•</span>
         <span>{game.category?.name ?? "Game"}</span>
@@ -68,19 +68,19 @@ export function PurchasePanel({ game }: { game: Game }) {
       </div>
 
       <div className="flex items-baseline gap-2 mt-1">
-        <span className="text-2xl font-bold text-blue-600">{formatPrice(game.price)}</span>
-        <span className="text-xs text-gray-400 line-through">
+        <span className="text-2xl font-bold text-accent">{formatPrice(game.price)}</span>
+        <span className="text-xs text-muted line-through">
           {formatPrice(game.original_price)}
         </span>
       </div>
       {discount > 0 && (
-        <div className="text-xs font-bold text-emerald-600">Hemat {discount}%</div>
+        <div className="text-xs font-bold text-emerald-500">Hemat {discount}%</div>
       )}
 
       <div className="flex flex-col gap-2.5 mt-2">
         <button
           onClick={handleBuyNow}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition text-sm flex items-center justify-center gap-2"
+          className="w-full bg-accent text-accent-foreground py-3 px-4 rounded-xl font-semibold hover:opacity-90 transition text-sm flex items-center justify-center gap-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -101,7 +101,7 @@ export function PurchasePanel({ game }: { game: Game }) {
         <button
           onClick={ensureInCart}
           disabled={inCart}
-          className="w-full bg-white border border-gray-200 text-gray-700 py-3 px-4 rounded-xl font-semibold hover:bg-gray-50 transition text-sm flex items-center justify-center gap-2 disabled:opacity-60"
+          className="w-full bg-background border border-border-subtle text-foreground py-3 px-4 rounded-xl font-semibold hover:bg-border-subtle transition text-sm flex items-center justify-center gap-2 disabled:opacity-60"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -121,8 +121,8 @@ export function PurchasePanel({ game }: { game: Game }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 text-xs font-medium text-gray-500 mt-2 pt-2 border-t border-gray-100">
-        <button onClick={handleShare} className="flex items-center justify-center gap-1.5 hover:text-gray-900">
+      <div className="grid grid-cols-1 gap-4 text-xs font-medium text-muted mt-2 pt-2 border-t border-border-subtle">
+        <button onClick={handleShare} className="flex items-center justify-center gap-1.5 hover:text-foreground">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-3.5 w-3.5"
@@ -141,7 +141,7 @@ export function PurchasePanel({ game }: { game: Game }) {
         </button>
       </div>
 
-      <div className="mt-2 space-y-2 border-t border-gray-100 pt-3 text-[11px] text-gray-500">
+      <div className="mt-2 space-y-2 border-t border-border-subtle pt-3 text-[11px] text-muted">
         <div className="flex items-center gap-2">
           <span className="text-blue-500 font-bold">⚡</span> Aktivasi instan setelah pembayaran
         </div>

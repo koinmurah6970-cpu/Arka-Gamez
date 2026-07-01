@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cache } from "react";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { GameMediaGallery } from "@/components/game-media-gallery";
 import { PurchasePanel } from "@/components/purchase-panel";
 import { StarRating } from "@/components/star-rating";
@@ -9,7 +10,7 @@ import { ReviewForm } from "@/components/review-form";
 import { ReviewList } from "@/components/review-list";
 import { emailToUsername } from "@/lib/auth-helpers";
 
-async function getGame(slug: string) {
+const getGame = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data: game } = await supabase
     .from("games")
@@ -44,7 +45,7 @@ async function getGame(slug: string) {
     reviews: reviews ?? [],
     orderCount: orderCount ?? 0,
   };
-}
+});
 
 export async function generateMetadata({
   params,
@@ -56,11 +57,20 @@ export async function generateMetadata({
   if (!result) return { title: "Game tidak ditemukan" };
 
   const { game } = result;
+  const description = game.description ?? `Beli & install ${game.name} sekarang.`;
   return {
     title: game.name,
-    description: game.description ?? `Beli & install ${game.name} sekarang.`,
+    description,
     openGraph: {
       title: game.name,
+      description,
+      type: "website",
+      images: game.cover_url ? [game.cover_url] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: game.name,
+      description,
       images: game.cover_url ? [game.cover_url] : [],
     },
   };
@@ -77,13 +87,11 @@ export default async function GameDetailPage({
 
   const { game, media, reviews, orderCount } = result;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   let hasOrdered = false;
   if (user) {
+    const supabase = await createClient();
     const { count } = await supabase
       .from("order_items")
       .select("id, order:orders!inner(user_id)", { count: "exact", head: true })
@@ -111,18 +119,43 @@ export default async function GameDetailPage({
       r.profile?.full_name || emailToUsername(r.user_id.slice(0, 8)),
   }));
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: game.name,
+    description: game.description ?? `Beli & install ${game.name} sekarang.`,
+    ...(game.cover_url && { image: game.cover_url }),
+    offers: {
+      "@type": "Offer",
+      price: game.price,
+      priceCurrency: "IDR",
+      availability: "https://schema.org/InStock",
+    },
+    ...(reviews.length > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: avgRating,
+        reviewCount: reviews.length,
+      },
+    }),
+  };
+
   return (
     <main className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="text-xs font-semibold text-gray-400 mb-6 flex items-center gap-2">
-        <Link href="/" className="hover:text-gray-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
+      <div className="text-xs font-semibold text-muted mb-6 flex items-center gap-2">
+        <Link href="/" className="hover:text-foreground">
           Home
         </Link>
         <span>/</span>
-        <Link href="/" className="hover:text-gray-900">
+        <Link href="/" className="hover:text-foreground">
           Catalogue
         </Link>
         <span>/</span>
-        <span className="text-gray-800">{game.name}</span>
+        <span className="text-foreground">{game.name}</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -136,23 +169,23 @@ export default async function GameDetailPage({
           <div className="flex items-center gap-4 px-1">
             <div className="flex items-center gap-1.5">
               <StarRating rating={avgRating} size="md" />
-              <span className="text-sm font-bold text-gray-700">
+              <span className="text-sm font-bold text-foreground">
                 {avgRating > 0 ? avgRating.toFixed(1) : "-"}
               </span>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-muted">
                 ({reviews.length})
               </span>
             </div>
-            <div className="text-xs text-gray-400 border-l border-gray-200 pl-4">
-              <span className="font-bold text-gray-600">{orderCount}</span> kali dipesan
+            <div className="text-xs text-muted border-l border-border-subtle pl-4">
+              <span className="font-bold text-foreground">{orderCount}</span> kali dipesan
             </div>
           </div>
 
           <div className="px-1">
-            <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
+            <h2 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">
               About This Game
-            </h4>
-            <p className="text-xs text-gray-500 leading-relaxed text-justify">
+            </h2>
+            <p className="text-xs text-muted leading-relaxed text-justify">
               {game.description || `Mainkan keseruan game ${game.name}.`}
             </p>
           </div>
@@ -160,7 +193,7 @@ export default async function GameDetailPage({
       </div>
 
       <section className="mt-12">
-        <h3 className="text-lg font-bold text-gray-900 mb-6">Review & Testimoni</h3>
+        <h2 className="text-lg font-bold text-foreground mb-6">Review & Testimoni</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           <div className="md:col-span-5">

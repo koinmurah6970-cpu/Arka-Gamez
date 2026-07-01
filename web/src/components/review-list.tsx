@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { StarRating } from "./star-rating";
 import { emailToUsername } from "@/lib/auth-helpers";
@@ -22,6 +22,11 @@ export function ReviewList({
   initialReviews: ReviewRow[];
 }) {
   const [reviews, setReviews] = useState(initialReviews);
+  const reviewsRef = useRef(reviews);
+
+  useEffect(() => {
+    reviewsRef.current = reviews;
+  }, [reviews]);
 
   const avgRating =
     reviews.length > 0
@@ -55,16 +60,21 @@ export function ReviewList({
             created_at: string;
           };
 
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name")
-            .eq("id", row.user_id)
-            .single();
+          // Reuse the name we already have (e.g. a user editing their own
+          // review fires UPDATE events) instead of re-querying profiles for
+          // every realtime event.
+          const known = reviewsRef.current.find((r) => r.user_id === row.user_id);
+          let displayName = known?.displayName;
+          if (!displayName) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", row.user_id)
+              .single();
+            displayName = profile?.full_name || emailToUsername(row.user_id.slice(0, 8));
+          }
 
-          const newReview: ReviewRow = {
-            ...row,
-            displayName: profile?.full_name || emailToUsername(row.user_id.slice(0, 8)),
-          };
+          const newReview: ReviewRow = { ...row, displayName };
 
           setReviews((prev) => {
             const existing = prev.findIndex((r) => r.id === row.id);
@@ -90,20 +100,20 @@ export function ReviewList({
         {reviews.length > 0 ? (
           <>
             <StarRating rating={avgRating} size="md" />
-            <span className="text-sm font-bold text-gray-700">
+            <span className="text-sm font-bold text-foreground">
               {avgRating.toFixed(1)}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted">
               ({reviews.length} review)
             </span>
           </>
         ) : (
-          <span className="text-xs text-gray-400">Belum ada review</span>
+          <span className="text-xs text-muted">Belum ada review</span>
         )}
       </div>
 
       {reviews.length === 0 ? (
-        <div className="text-center py-8 text-gray-400 text-sm">
+        <div className="text-center py-8 text-muted text-sm">
           Jadilah yang pertama kasih review!
         </div>
       ) : (
@@ -111,18 +121,18 @@ export function ReviewList({
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm"
+              className="bg-surface border border-border-subtle rounded-xl p-4"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="h-7 w-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                  <span className="h-7 w-7 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xs font-bold">
                     {review.displayName.charAt(0).toUpperCase()}
                   </span>
-                  <span className="text-sm font-semibold text-gray-800">
+                  <span className="text-sm font-semibold text-foreground">
                     {review.displayName}
                   </span>
                 </div>
-                <span className="text-[10px] text-gray-400">
+                <span className="text-[10px] text-muted">
                   {new Date(review.created_at).toLocaleDateString("id-ID", {
                     day: "numeric",
                     month: "short",
@@ -132,7 +142,7 @@ export function ReviewList({
               </div>
               <StarRating rating={review.rating} />
               {review.comment && (
-                <p className="text-sm text-gray-600 mt-2">{review.comment}</p>
+                <p className="text-sm text-muted mt-2">{review.comment}</p>
               )}
             </div>
           ))}

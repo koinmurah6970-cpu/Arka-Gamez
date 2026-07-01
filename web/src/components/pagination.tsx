@@ -32,10 +32,10 @@ export function Pagination({
       <Link
         href={hrefFor(Math.max(1, currentPage - 1))}
         aria-disabled={currentPage === 1}
-        className={`px-3 py-2 rounded-lg border border-gray-200 font-semibold ${
+        className={`px-3 py-2 rounded-lg border border-border-subtle font-semibold ${
           currentPage === 1
-            ? "pointer-events-none text-gray-300"
-            : "text-gray-600 hover:bg-gray-50"
+            ? "pointer-events-none text-muted/50"
+            : "text-muted hover:bg-border-subtle"
         }`}
       >
         ‹
@@ -43,14 +43,14 @@ export function Pagination({
       {pages.map((page, idx) => (
         <span key={page} className="flex items-center gap-1.5">
           {idx > 0 && pages[idx - 1] !== page - 1 && (
-            <span className="px-1 text-gray-400">…</span>
+            <span className="px-1 text-muted">…</span>
           )}
           <Link
             href={hrefFor(page)}
             className={`px-3.5 py-2 rounded-lg font-semibold border ${
               page === currentPage
-                ? "bg-[#0b0f19] text-white border-[#0b0f19]"
-                : "text-gray-600 border-gray-200 hover:bg-gray-50"
+                ? "bg-accent text-accent-foreground border-accent"
+                : "text-muted border-border-subtle hover:bg-border-subtle"
             }`}
           >
             {page}
@@ -60,10 +60,10 @@ export function Pagination({
       <Link
         href={hrefFor(Math.min(totalPages, currentPage + 1))}
         aria-disabled={currentPage === totalPages}
-        className={`px-3 py-2 rounded-lg border border-gray-200 font-semibold ${
+        className={`px-3 py-2 rounded-lg border border-border-subtle font-semibold ${
           currentPage === totalPages
-            ? "pointer-events-none text-gray-300"
-            : "text-gray-600 hover:bg-gray-50"
+            ? "pointer-events-none text-muted/50"
+            : "text-muted hover:bg-border-subtle"
         }`}
       >
         ›

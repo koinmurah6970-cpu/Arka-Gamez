@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "./cart-context";
 import { createClient } from "@/lib/supabase/client";
+import { ThemeToggle } from "./theme-toggle";
 
 export function NavbarClient({
   user,
@@ -14,6 +15,13 @@ export function NavbarClient({
   const { count } = useCart();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const q = searchValue.trim();
+    router.push(q ? `/?q=${encodeURIComponent(q)}` : "/");
+  }
 
   async function handleLogout() {
     const supabase = createClient();
@@ -24,31 +32,44 @@ export function NavbarClient({
   }
 
   return (
-    <nav className="bg-white border-b border-gray-100 p-4 sticky top-0 z-50 shadow-sm">
+    <nav className="bg-background/60 backdrop-blur-xl border-b border-border-subtle p-4 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center max-w-7xl">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <div className="h-8 w-8 bg-[#0b0f19] rounded-lg flex items-center justify-center font-black text-white italic text-lg">
               G
             </div>
-            <h1 className="text-lg font-extrabold tracking-tight text-gray-900">
-              GAMOS <span className="text-gray-500 font-medium">GAMES</span>
-            </h1>
+            <span className="text-lg font-extrabold tracking-tight text-foreground">
+              GAMOS <span className="text-muted font-medium">GAMES</span>
+            </span>
           </Link>
-          <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-500">
-            <Link href="/" className="hover:text-blue-600 transition">
+          <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-muted">
+            <Link href="/" className="hover:text-accent transition">
               BERANDA
             </Link>
-            <Link href="/cek-pesanan" className="hover:text-blue-600 transition">
+            <Link href="/cek-pesanan" className="hover:text-accent transition">
               CEK PESANAN
             </Link>
           </div>
         </div>
 
+        <form onSubmit={handleSearch} className="hidden md:block flex-1 max-w-xs mx-4">
+          <input
+            type="search"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            placeholder="Cari game..."
+            aria-label="Cari game"
+            className="w-full bg-border-subtle border border-transparent rounded-xl px-3.5 py-2 text-sm text-foreground focus:outline-none focus:border-accent transition"
+          />
+        </form>
+
         <div className="flex items-center gap-3">
+          <ThemeToggle />
+
           <Link
             href="/cart"
-            className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition"
+            className="relative p-2 text-muted hover:text-foreground hover:bg-border-subtle rounded-xl transition"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -75,13 +96,13 @@ export function NavbarClient({
             <div className="relative">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 transition"
+                className="flex items-center gap-2 bg-border-subtle hover:opacity-80 rounded-xl px-3 py-2 text-sm font-semibold text-foreground transition"
               >
-                <span className="h-6 w-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                <span className="h-6 w-6 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xs font-bold">
                   {user.displayName.charAt(0).toUpperCase()}
                 </span>
                 <span className="hidden sm:inline max-w-[120px] truncate">{user.displayName}</span>
-                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
@@ -89,13 +110,13 @@ export function NavbarClient({
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-1">
-                    <p className="px-4 py-2 text-xs text-gray-400 truncate">{user.displayName}</p>
-                    <div className="border-t border-gray-100" />
+                  <div className="absolute right-0 mt-2 w-48 bg-surface border border-border-subtle rounded-xl shadow-lg z-50 py-1">
+                    <p className="px-4 py-2 text-xs text-muted truncate">{user.displayName}</p>
+                    <div className="border-t border-border-subtle" />
                     <Link
                       href="/cek-pesanan"
                       onClick={() => setMenuOpen(false)}
-                      className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                      className="block px-4 py-2.5 text-sm text-foreground hover:bg-border-subtle"
                     >
                       Pesanan Saya
                     </Link>
@@ -103,15 +124,15 @@ export function NavbarClient({
                       <Link
                         href="/admin"
                         onClick={() => setMenuOpen(false)}
-                        className="block px-4 py-2.5 text-sm text-blue-600 font-semibold hover:bg-blue-50"
+                        className="block px-4 py-2.5 text-sm text-accent font-semibold hover:bg-border-subtle"
                       >
                         Dashboard Admin
                       </Link>
                     )}
-                    <div className="border-t border-gray-100" />
+                    <div className="border-t border-border-subtle" />
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50"
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-border-subtle"
                     >
                       Keluar
                     </button>
@@ -122,7 +143,7 @@ export function NavbarClient({
           ) : (
             <Link
               href="/login"
-              className="bg-blue-600 text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-blue-700 transition"
+              className="bg-accent text-accent-foreground text-sm font-bold px-4 py-2 rounded-xl hover:opacity-90 transition"
             >
               Masuk
             </Link>

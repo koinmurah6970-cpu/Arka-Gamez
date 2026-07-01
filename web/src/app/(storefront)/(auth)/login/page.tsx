@@ -56,41 +56,41 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-[70vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-sm bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-        <h1 className="text-xl font-extrabold text-gray-900 mb-1">Masuk</h1>
-        <p className="text-xs text-gray-400 mb-6">
+      <div className="w-full max-w-sm bg-surface border border-border-subtle rounded-2xl shadow-sm p-6">
+        <h1 className="text-xl font-extrabold text-foreground mb-1">Masuk</h1>
+        <p className="text-xs text-muted mb-6">
           Belum punya akun?{" "}
-          <Link href="/daftar" className="text-blue-600 font-semibold hover:underline">
+          <Link href="/daftar" className="text-accent font-semibold hover:underline">
             Daftar
           </Link>
         </p>
 
         {justRegistered && (
-          <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg p-3 mb-4">
+          <p className="text-xs text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 mb-4">
             Akun berhasil dibuat! Silakan masuk.
           </p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Username</label>
+            <label className="block text-xs font-bold text-muted uppercase mb-2">Username</label>
             <input
               type="text"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="contoh: admin"
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition"
+              className="w-full bg-background border border-border-subtle rounded-xl p-3 text-sm text-foreground focus:outline-none focus:border-accent transition"
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Password</label>
+            <label className="block text-xs font-bold text-muted uppercase mb-2">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 transition"
+              className="w-full bg-background border border-border-subtle rounded-xl p-3 text-sm text-foreground focus:outline-none focus:border-accent transition"
             />
           </div>
 
@@ -99,7 +99,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-sm disabled:opacity-60"
+            className="w-full bg-accent text-accent-foreground py-3 rounded-xl font-bold text-sm disabled:opacity-60"
           >
             {submitting ? "Memproses..." : "Masuk"}
           </button>

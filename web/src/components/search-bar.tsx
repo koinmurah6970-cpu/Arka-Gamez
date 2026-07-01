@@ -29,7 +29,7 @@ export function SearchBar() {
 
   return (
     <div className="relative mb-4 max-w-4xl">
-      <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+      <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted">
         {isPending ? (
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -73,7 +73,7 @@ export function SearchBar() {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Cari game..."
-        className="w-full bg-white border border-gray-200 rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition"
+        className="w-full bg-surface border border-border-subtle rounded-2xl py-3.5 pl-11 pr-4 text-sm text-foreground placeholder-muted focus:outline-none focus:border-accent transition"
       />
     </div>
   );

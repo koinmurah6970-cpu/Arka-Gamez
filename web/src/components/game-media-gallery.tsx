@@ -35,14 +35,14 @@ export function GameMediaGallery({
   return (
     <div className="flex flex-col gap-3">
       <div
-        className={`rounded-2xl overflow-hidden shadow-md relative border border-gray-100 flex items-center justify-center ${
+        className={`rounded-2xl overflow-hidden shadow-md relative border border-border-subtle flex items-center justify-center ${
           isCoverOnly
-            ? "aspect-[3/4] max-h-[520px] mx-auto bg-gray-100"
+            ? "aspect-[3/4] max-h-[520px] mx-auto bg-surface"
             : "aspect-video bg-black"
         }`}
       >
         {!active && (
-          <span className="text-gray-500 text-sm">Belum ada media</span>
+          <span className="text-muted text-sm">Belum ada media</span>
         )}
         {active?.media_type === "video" ? (
           <video
@@ -67,7 +67,7 @@ export function GameMediaGallery({
             <div
               key={m.id}
               onClick={() => setActiveIndex(index)}
-              className={`thumb-media aspect-video bg-gray-900 rounded-lg overflow-hidden border-2 border-gray-200 opacity-60 ${
+              className={`thumb-media aspect-video bg-surface rounded-lg overflow-hidden border-2 border-border-subtle opacity-60 ${
                 index === activeIndex ? "active" : ""
               }`}
             >

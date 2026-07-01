@@ -9,12 +9,23 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://gamos-store.vercel.app"),
   title: {
     default: "GAMOS STORE - Jelajahi Koleksi",
     template: "%s | GAMOS STORE",
   },
   description: "Jual & instalasi game PC/Laptop, ribuan koleksi siap pakai.",
+  openGraph: {
+    siteName: "GAMOS STORE",
+    type: "website",
+    locale: "id_ID",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
+
+const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('theme');var d=s?s==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -23,7 +34,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${plusJakartaSans.variable} antialiased`}>
-      <body className="bg-white text-gray-900">{children}</body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }

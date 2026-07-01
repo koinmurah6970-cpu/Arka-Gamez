@@ -12,7 +12,7 @@ export function StarRating({
       {[1, 2, 3, 4, 5].map((star) => (
         <span
           key={star}
-          className={star <= Math.round(rating) ? "text-amber-400" : "text-gray-200"}
+          className={star <= Math.round(rating) ? "text-amber-400" : "text-border-subtle"}
         >
           ★
         </span>
@@ -36,7 +36,7 @@ export function StarRatingInput({
           type="button"
           onClick={() => onChange(star)}
           className={`transition hover:scale-110 ${
-            star <= value ? "text-amber-400" : "text-gray-200 hover:text-amber-200"
+            star <= value ? "text-amber-400" : "text-border-subtle hover:text-amber-200"
           }`}
         >
           ★

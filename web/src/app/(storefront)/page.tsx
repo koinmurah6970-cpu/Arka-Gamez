@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/product-card";
 import { SearchBar } from "@/components/search-bar";
 import { CategoryFilter } from "@/components/category-filter";
 import { Pagination } from "@/components/pagination";
+import { StorefrontHero } from "@/components/storefront-hero";
 import { PAGE_SIZE } from "@/lib/constants";
 
 // Categories barely ever change -- cache them instead of round-tripping to
@@ -63,11 +64,15 @@ export default async function HomePage({
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
+  const isDefaultView = !q && !kategori && page === 1;
+
   return (
     <main className="container mx-auto px-4 py-8 max-w-7xl">
+      {isDefaultView && <StorefrontHero />}
+
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Jelajahi Koleksi</h2>
-        <p className="text-xs text-gray-400 mt-1 font-medium">
+        <h1 className="text-2xl font-bold text-foreground">Jelajahi Koleksi</h1>
+        <p className="text-xs text-muted mt-1 font-medium">
           {count !== null ? `• ${count} Game` : "Memuat total game..."}
         </p>
       </div>
@@ -86,7 +91,7 @@ export default async function HomePage({
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 text-gray-400 text-sm">
+        <div className="text-center py-20 text-muted text-sm">
           Tidak ada game ditemukan.
         </div>
       )}

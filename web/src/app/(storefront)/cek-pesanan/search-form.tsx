@@ -24,12 +24,12 @@ export function OrderSearchForm({ defaultValue }: { defaultValue: string }) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Masukkan nomor pesanan (GAM-XXXXXX)"
-        className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-blue-500 transition"
+        className="flex-1 bg-surface border border-border-subtle rounded-xl px-4 py-3 text-sm font-mono text-foreground focus:outline-none focus:border-accent transition"
       />
       <button
         type="submit"
         disabled={isPending}
-        className="bg-blue-600 text-white text-sm font-bold px-5 py-3 rounded-xl hover:bg-blue-700 transition disabled:opacity-60"
+        className="bg-accent text-accent-foreground text-sm font-bold px-5 py-3 rounded-xl hover:opacity-90 transition disabled:opacity-60"
       >
         {isPending ? "..." : "Cek"}
       </button>

@@ -34,11 +34,11 @@ export function ProductCard({ game }: { game: GameCardData }) {
   return (
     <Link
       href={`/game/${game.slug}`}
-      className="bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col h-full shadow-sm hover:shadow-md transition relative group"
+      className="bg-surface rounded-2xl overflow-hidden border border-border-subtle flex flex-col h-full relative group transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/10 hover:border-accent/30"
     >
       <div className="cover-container">
         {game.is_new && (
-          <span className="absolute top-2 left-2 z-10 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-md">
+          <span className="absolute top-2 left-2 z-10 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-1 rounded-md">
             BARU
           </span>
         )}
@@ -52,24 +52,24 @@ export function ProductCard({ game }: { game: GameCardData }) {
             className="cover-img object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs font-semibold">
+          <div className="w-full h-full flex items-center justify-center text-muted text-xs font-semibold">
             No Cover
           </div>
         )}
       </div>
       <div className="p-3.5 flex flex-col justify-between flex-grow">
         <div>
-          <h3 className="text-[13px] font-bold text-gray-800 line-clamp-2 h-9 mb-2 leading-tight">
+          <h3 className="text-[13px] font-bold text-foreground line-clamp-2 h-9 mb-2 leading-tight">
             {game.name}
           </h3>
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-blue-600 font-bold text-sm">{formatPrice(game.price)}</span>
-            <span className="text-gray-400 text-[11px] line-through">
+            <span className="text-accent font-bold text-sm">{formatPrice(game.price)}</span>
+            <span className="text-muted text-[11px] line-through">
               {formatPrice(game.original_price)}
             </span>
           </div>
           {discount > 0 && (
-            <div className="text-[10px] font-bold text-emerald-600 uppercase mt-0.5 tracking-wide">
+            <div className="text-[10px] font-bold text-emerald-500 uppercase mt-0.5 tracking-wide">
               HEMAT {discount}%
             </div>
           )}
@@ -78,10 +78,10 @@ export function ProductCard({ game }: { game: GameCardData }) {
           <button
             onClick={handleAddToCart}
             aria-label="Tambah ke keranjang"
-            className={`p-2 border rounded-xl transition shadow-sm ${
+            className={`p-2 border rounded-xl transition ${
               inCart
-                ? "bg-blue-50 border-blue-600 text-blue-600"
-                : "bg-gray-50 border-gray-200 hover:border-blue-600 hover:bg-blue-50 text-gray-600 hover:text-blue-600"
+                ? "bg-accent/10 border-accent text-accent"
+                : "bg-background border-border-subtle hover:border-accent hover:bg-accent/10 text-muted hover:text-accent"
             }`}
           >
             <svg
