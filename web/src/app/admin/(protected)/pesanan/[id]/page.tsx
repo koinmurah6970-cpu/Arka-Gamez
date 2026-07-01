@@ -2,25 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
-import type { OrderStatus } from "@/lib/supabase/types";
-import { updateOrderStatus } from "../actions";
-
-const STATUS_FLOW: OrderStatus[] = [
-  "pending",
-  "confirmed",
-  "paid",
-  "processing",
-  "completed",
-  "cancelled",
-];
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: "Pending",
-  confirmed: "Dikonfirmasi",
-  paid: "Lunas",
-  processing: "Diproses",
-  completed: "Selesai",
-  cancelled: "Dibatalkan",
-};
+import { StatusSelect } from "./status-select";
 
 function buildWhatsAppLink(phone: string, orderNumber: string, playerId: string) {
   const digits = phone.replace(/\D/g, "").replace(/^0/, "62");
@@ -95,20 +77,7 @@ export default async function AdminOrderDetailPage({
 
       <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
         <h2 className="text-xs font-bold text-gray-500 uppercase mb-3">Update Status</h2>
-        <form action={updateOrderStatus.bind(null, order.id)} className="flex items-center gap-2">
-          <select
-            name="status"
-            defaultValue={order.status}
-            onChange={(e) => e.currentTarget.form?.requestSubmit()}
-            className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm flex-1"
-          >
-            {STATUS_FLOW.map((s) => (
-              <option key={s} value={s}>
-                {STATUS_LABEL[s]}
-              </option>
-            ))}
-          </select>
-        </form>
+        <StatusSelect orderId={order.id} currentStatus={order.status} />
       </div>
     </div>
   );
