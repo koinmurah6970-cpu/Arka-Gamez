@@ -39,11 +39,12 @@ export default async function EditGamePage({
       </div>
 
       <form action={updateGame.bind(null, game.id)} className="space-y-5">
+        <input type="hidden" name="slug" value={game.slug} />
         <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-6">
           <div>
             <div className="cover-container border border-gray-200">
               {game.cover_url && (
-                <Image src={game.cover_url} alt={game.name} fill sizes="160px" className="cover-img object-cover" />
+                <Image src={game.cover_url} alt={game.name} fill unoptimized className="cover-img object-cover" />
               )}
             </div>
             <label className="block mt-2">

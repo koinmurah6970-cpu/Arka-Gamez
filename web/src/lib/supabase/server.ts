@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import type { Database } from "./types";
 
 export async function createClient() {
@@ -28,3 +29,13 @@ export async function createClient() {
     }
   );
 }
+
+// Dedupes the auth round-trip when multiple server components (e.g. Navbar
+// and the page it wraps) each need the current user within one request.
+export const getCurrentUser = cache(async () => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+});

@@ -47,30 +47,31 @@ export default async function AdminDashboardPage() {
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const [
-    { count: gamesTotal },
-    { count: gamesActive },
-    { count: gamesDraft },
-    { count: gamesNeedsQc },
-    { count: ordersPending },
-    { count: ordersTotal },
-    { data: revenueRows },
-  ] = await Promise.all([
-    supabase.from("games").select("*", { count: "exact", head: true }),
-    supabase.from("games").select("*", { count: "exact", head: true }).eq("status", "active"),
-    supabase.from("games").select("*", { count: "exact", head: true }).eq("status", "draft"),
-    supabase
-      .from("games")
-      .select("*", { count: "exact", head: true })
-      .or("cover_source.eq.rawg,cover_source.eq.placeholder,cover_source.is.null"),
-    supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("orders").select("*", { count: "exact", head: true }),
-    supabase
-      .from("orders")
-      .select("total")
-      .in("status", ["paid", "completed"])
-      .gte("created_at", startOfMonth.toISOString()),
-  ]);
+  // Fetch just the narrow columns needed and tally in JS instead of firing
+  // one `count: exact` round-trip per stat -- Postgres still has to scan the
+  // table for an exact count, so this trades 7 round-trips for 3 without
+  // needing a new DB function.
+  const [{ data: gameRows }, { data: orderStatusRows }, { data: revenueRows }] =
+    await Promise.all([
+      supabase.from("games").select("status, cover_source"),
+      supabase.from("orders").select("status"),
+      supabase
+        .from("orders")
+        .select("total")
+        .in("status", ["paid", "completed"])
+        .gte("created_at", startOfMonth.toISOString()),
+    ]);
+
+  const gamesTotal = gameRows?.length ?? 0;
+  const gamesActive = gameRows?.filter((g) => g.status === "active").length ?? 0;
+  const gamesDraft = gameRows?.filter((g) => g.status === "draft").length ?? 0;
+  const gamesNeedsQc =
+    gameRows?.filter(
+      (g) => g.cover_source === "rawg" || g.cover_source === "placeholder" || !g.cover_source
+    ).length ?? 0;
+
+  const ordersTotal = orderStatusRows?.length ?? 0;
+  const ordersPending = orderStatusRows?.filter((o) => o.status === "pending").length ?? 0;
 
   const revenueThisMonth = (revenueRows ?? []).reduce((sum, o) => sum + Number(o.total), 0);
 

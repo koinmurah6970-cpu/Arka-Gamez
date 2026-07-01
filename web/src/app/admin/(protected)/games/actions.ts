@@ -36,8 +36,7 @@ export async function updateGame(id: string, formData: FormData) {
 
   const coverFile = formData.get("cover_file");
   if (coverFile instanceof File && coverFile.size > 0) {
-    const slugRes = await supabase.from("games").select("slug").eq("id", id).single();
-    const slug = slugRes.data?.slug ?? id;
+    const slug = String(formData.get("slug") ?? "").trim() || id;
     const path = `${slug}.webp`;
     const { error: uploadError } = await supabase.storage
       .from("game-covers")
