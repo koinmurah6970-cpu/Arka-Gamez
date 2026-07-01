@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 
 export function Pagination({
   currentPage,
@@ -11,6 +15,9 @@ export function Pagination({
   searchParams: Record<string, string | undefined>;
   basePath?: string;
 }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
   if (totalPages <= 1) return null;
 
   function hrefFor(page: number) {
@@ -23,14 +30,26 @@ export function Pagination({
     return qs ? `${basePath}?${qs}` : basePath;
   }
 
+  function goTo(page: number, e: React.MouseEvent) {
+    e.preventDefault();
+    startTransition(() => {
+      router.push(hrefFor(page));
+    });
+  }
+
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
     (p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1
   );
 
   return (
-    <nav className="flex items-center justify-center gap-1.5 mt-10 mb-4 text-sm">
+    <nav
+      className={`flex items-center justify-center gap-1.5 mt-10 mb-4 text-sm transition-opacity ${
+        isPending ? "opacity-50" : ""
+      }`}
+    >
       <Link
         href={hrefFor(Math.max(1, currentPage - 1))}
+        onClick={(e) => goTo(Math.max(1, currentPage - 1), e)}
         aria-disabled={currentPage === 1}
         className={`px-3 py-2 rounded-lg border border-border-subtle font-semibold ${
           currentPage === 1
@@ -47,6 +66,7 @@ export function Pagination({
           )}
           <Link
             href={hrefFor(page)}
+            onClick={(e) => goTo(page, e)}
             className={`px-3.5 py-2 rounded-lg font-semibold border ${
               page === currentPage
                 ? "bg-accent text-accent-foreground border-accent"
@@ -59,6 +79,7 @@ export function Pagination({
       ))}
       <Link
         href={hrefFor(Math.min(totalPages, currentPage + 1))}
+        onClick={(e) => goTo(Math.min(totalPages, currentPage + 1), e)}
         aria-disabled={currentPage === totalPages}
         className={`px-3 py-2 rounded-lg border border-border-subtle font-semibold ${
           currentPage === totalPages
