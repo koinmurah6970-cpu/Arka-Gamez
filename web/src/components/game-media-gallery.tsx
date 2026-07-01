@@ -1,7 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Hls from "hls.js";
 import type { GameMedia } from "@/lib/supabase/types";
+
+function HlsVideo({ src, poster }: { src: string; poster?: string | null }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (src.includes(".m3u8") && Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(src);
+      hls.attachMedia(video);
+      return () => hls.destroy();
+    }
+    // Safari plays HLS natively; anything else (direct mp4/webm) just works too.
+    video.src = src;
+  }, [src]);
+
+  return (
+    <video
+      ref={videoRef}
+      controls
+      poster={poster ?? undefined}
+      className="w-full h-full"
+    />
+  );
+}
 
 export function GameMediaGallery({
   media,
@@ -45,12 +73,7 @@ export function GameMediaGallery({
           <span className="text-muted text-sm">Belum ada media</span>
         )}
         {active?.media_type === "video" ? (
-          <video
-            key={active.url}
-            controls
-            className="w-full h-full"
-            src={active.url}
-          />
+          <HlsVideo key={active.url} src={active.url} poster={active.thumbnail_url} />
         ) : active ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
