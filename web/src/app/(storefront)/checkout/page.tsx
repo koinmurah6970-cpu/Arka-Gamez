@@ -1,22 +1,59 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useCart } from "@/components/cart-context";
 import { createClient } from "@/lib/supabase/client";
 import { checkoutSchema } from "@/lib/validation";
 import { formatPrice } from "@/lib/format";
+import type { CartItem } from "@/components/cart-context";
 
-export default function CheckoutPage() {
+function CheckoutForm() {
   const router = useRouter();
-  const { items, total, clear } = useCart();
+  const searchParams = useSearchParams();
+  const directId = searchParams.get("direct");
+
+  const { items: cartItems, total: cartTotal, clear } = useCart();
+
+  const [directItem, setDirectItem] = useState<CartItem | null>(null);
+  const [directLoading, setDirectLoading] = useState(!!directId);
+
   const [playerId, setPlayerId] = useState("");
   const [guestName, setGuestName] = useState("");
   const [guestWhatsapp, setGuestWhatsapp] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!directId) return;
+    const supabase = createClient();
+    supabase
+      .from("games")
+      .select("id, slug, name, price, cover_url")
+      .eq("id", directId)
+      .eq("status", "active")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) {
+          router.replace("/");
+          return;
+        }
+        setDirectItem({
+          gameId: data.id,
+          slug: data.slug,
+          name: data.name,
+          price: data.price,
+          coverUrl: data.cover_url,
+        });
+        setDirectLoading(false);
+      });
+  }, [directId, router]);
+
+  const isDirect = !!directId;
+  const items = isDirect ? (directItem ? [directItem] : []) : cartItems;
+  const total = items.reduce((sum, i) => sum + i.price, 0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,8 +95,17 @@ export default function CheckoutPage() {
         total,
       })
     );
-    clear();
+
+    if (!isDirect) clear();
     router.push(`/checkout/${order.order_number}`);
+  }
+
+  if (directLoading) {
+    return (
+      <main className="container mx-auto px-4 py-8 max-w-xl text-center">
+        <p className="text-muted text-sm py-20">Memuat detail game...</p>
+      </main>
+    );
   }
 
   if (items.length === 0) {
@@ -147,5 +193,17 @@ export default function CheckoutPage() {
         </button>
       </form>
     </main>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <main className="container mx-auto px-4 py-8 max-w-xl text-center">
+        <p className="text-muted text-sm py-20">Memuat...</p>
+      </main>
+    }>
+      <CheckoutForm />
+    </Suspense>
   );
 }

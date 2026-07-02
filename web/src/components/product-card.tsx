@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatPrice, discountPercent } from "@/lib/format";
 import { useCart } from "./cart-context";
 import type { Game } from "@/lib/supabase/types";
@@ -21,6 +22,7 @@ const CATEGORY_STYLE: Record<string, string> = {
 };
 
 export function ProductCard({ game }: { game: GameCardData }) {
+  const router = useRouter();
   const { addItem, items } = useCart();
   const inCart = items.some((i) => i.gameId === game.id);
   const discount = discountPercent(game.price, game.original_price);
@@ -38,6 +40,12 @@ export function ProductCard({ game }: { game: GameCardData }) {
       price: game.price,
       coverUrl: game.cover_url,
     });
+  }
+
+  function handleBuyNow(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/checkout?direct=${game.id}`);
   }
 
   return (
@@ -103,17 +111,36 @@ export function ProductCard({ game }: { game: GameCardData }) {
             </div>
           )}
 
-          <button
-            onClick={handleAddToCart}
-            aria-label="Tambah ke keranjang"
-            className={`w-full py-2 rounded-xl text-[12px] font-bold transition ${
-              inCart
-                ? "bg-accent/15 text-accent border border-accent/30"
-                : "bg-accent text-accent-foreground hover:opacity-90"
-            }`}
-          >
-            {inCart ? "✓ Di Keranjang" : "Beli"}
-          </button>
+          <div className="flex gap-1.5">
+            <button
+              onClick={handleAddToCart}
+              aria-label={inCart ? "Sudah di keranjang" : "Tambah ke keranjang"}
+              title={inCart ? "Sudah di keranjang" : "Tambah ke keranjang"}
+              className={`flex-none flex items-center justify-center w-9 h-9 rounded-xl border transition ${
+                inCart
+                  ? "border-accent/30 bg-accent/10 text-accent"
+                  : "border-border-subtle bg-surface hover:border-accent/40 hover:text-accent text-muted"
+              }`}
+            >
+              {inCart ? (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+              )}
+            </button>
+
+            <button
+              onClick={handleBuyNow}
+              className="flex-1 flex items-center justify-center py-2 rounded-xl bg-accent text-accent-foreground text-[12px] font-bold hover:opacity-90 transition"
+            >
+              Beli Sekarang
+            </button>
+          </div>
         </div>
       </div>
     </Link>
