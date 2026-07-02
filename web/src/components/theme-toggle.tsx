@@ -1,22 +1,18 @@
 "use client";
 
-import { useState } from "react";
-
-function getInitialIsDark() {
-  if (typeof document === "undefined") return false;
-  return document.documentElement.classList.contains("dark");
-}
+import { useState, useEffect } from "react";
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(getInitialIsDark);
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains("dark"));
+  }, []);
 
   function toggle() {
     const next = !isDark;
 
-    // Dozens of elements across the page carry a `transition`/`transition-all`
-    // class meant for hover states -- those same properties (background/border/
-    // text color) are what change on a theme swap, so without this they'd all
-    // fade in sequence instead of switching at once, which reads as lag.
+    // Suppress transition flicker on theme swap
     const style = document.createElement("style");
     style.textContent = "*{transition:none!important}";
     document.head.appendChild(style);

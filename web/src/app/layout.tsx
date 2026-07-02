@@ -9,7 +9,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://link-yu.vercel.app"),
+  metadataBase: new URL("https://linkgames.vercel.app"),
   title: {
     default: "Link Yu - Jelajahi Koleksi",
     template: "%s | Link Yu",
@@ -33,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${plusJakartaSans.variable} antialiased`}>
+    <html lang="id" className={`${plusJakartaSans.variable} antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
