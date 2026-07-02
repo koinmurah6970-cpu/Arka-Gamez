@@ -79,7 +79,7 @@ export default async function CekPesananPage({
                   {order.order_number}
                 </p>
                 <p className="text-xs text-muted mt-0.5">
-                  {new Date(order.created_at).toLocaleString("id-ID")}
+                  {new Date(order.created_at).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}
                 </p>
               </div>
               {isCancelled && (

@@ -114,7 +114,7 @@ export default async function AdminRequestGamePage({
                     {" · "}
                     {req.requester_wa}
                     {" · "}
-                    {new Date(req.created_at).toLocaleDateString("id-ID", {
+                    {new Date(req.created_at).toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta",
                       day: "numeric",
                       month: "short",
                       year: "numeric",

@@ -131,7 +131,7 @@ export function ReviewList({
                   </span>
                 </div>
                 <span className="text-[10px] text-muted">
-                  {new Date(review.created_at).toLocaleDateString("id-ID", {
+                  {new Date(review.created_at).toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta",
                     day: "numeric",
                     month: "short",
                     year: "numeric",

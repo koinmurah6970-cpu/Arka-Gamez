@@ -34,7 +34,7 @@ export default async function AdminOrderDetailPage({
         {order.order_number}
       </h1>
       <p className="text-xs text-gray-400 mb-6">
-        {new Date(order.created_at).toLocaleString("id-ID")}
+        {new Date(order.created_at).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}
       </p>
 
       <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm mb-4">

@@ -123,7 +123,7 @@ export default async function AdminOrdersPage({
                   </span>
                 </td>
                 <td className="px-4 py-3 text-gray-400 text-xs">
-                  {new Date(order.created_at).toLocaleDateString("id-ID", {
+                  {new Date(order.created_at).toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta",
                     day: "numeric",
                     month: "short",
                     year: "numeric",
