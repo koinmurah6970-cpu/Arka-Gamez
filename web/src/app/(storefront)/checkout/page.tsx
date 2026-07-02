@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { checkoutSchema } from "@/lib/validation";
 import { formatPrice } from "@/lib/format";
 import type { CartItem } from "@/components/cart-context";
+import { sendConfirmationEmail } from "./actions";
 
 function CheckoutForm() {
   const router = useRouter();
@@ -94,6 +95,14 @@ function CheckoutForm() {
         items,
         total,
       })
+    );
+
+    sendConfirmationEmail(
+      parsed.data.playerId,
+      parsed.data.guestName,
+      order.order_number,
+      items.map((i) => ({ name: i.name, price: i.price })),
+      total
     );
 
     if (!isDirect) clear();

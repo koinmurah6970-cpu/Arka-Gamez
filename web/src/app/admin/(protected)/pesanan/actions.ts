@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { sendWhatsApp } from "@/lib/fonnte";
+import { sendOrderStatusEmail } from "@/lib/email";
 import { STORE_NAME } from "@/lib/constants";
 import type { OrderStatus } from "@/lib/supabase/types";
 
@@ -23,7 +24,7 @@ export async function updateOrderStatus(id: string, formData: FormData) {
 
   const { data: order } = await supabase
     .from("orders")
-    .select("order_number, guest_name, guest_whatsapp, status")
+    .select("order_number, guest_name, guest_whatsapp, player_id, status")
     .eq("id", id)
     .single();
 
@@ -33,11 +34,17 @@ export async function updateOrderStatus(id: string, formData: FormData) {
   revalidatePath(`/admin/pesanan/${id}`);
   revalidatePath("/admin");
 
-  if (order?.guest_whatsapp && order.status !== status) {
+  if (order && order.status !== status) {
+    const name = order.guest_name || "kak";
     const buildMsg = WA_MESSAGES[status];
-    if (buildMsg) {
-      const name = order.guest_name || "kak";
-      await sendWhatsApp(order.guest_whatsapp, buildMsg(name, order.order_number));
-    }
+
+    await Promise.all([
+      order.guest_whatsapp && buildMsg
+        ? sendWhatsApp(order.guest_whatsapp, buildMsg(name, order.order_number))
+        : Promise.resolve(),
+      order.player_id
+        ? sendOrderStatusEmail(order.player_id, name, order.order_number, status)
+        : Promise.resolve(),
+    ]);
   }
 }
