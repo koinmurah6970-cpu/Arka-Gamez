@@ -26,46 +26,10 @@ async function getNewThisWeekCount() {
   return count ?? 0;
 }
 
-async function getBestSellers() {
-  const supabase = await createClient();
-  // No sales-count column exists yet -- tally order_items per game in JS. Fine at
-  // today's order volume; revisit with a DB-side aggregate if this table grows large.
-  const { data: orderItems } = await supabase.from("order_items").select("game_id");
-
-  const tally = new Map<string, number>();
-  for (const item of orderItems ?? []) {
-    if (!item.game_id) continue;
-    tally.set(item.game_id, (tally.get(item.game_id) ?? 0) + 1);
-  }
-  const topIds = [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
-
-  if (topIds.length > 0) {
-    const { data } = await supabase
-      .from("games")
-      .select("id, slug, name, cover_url, price")
-      .eq("status", "active")
-      .in("id", topIds);
-    if (data && data.length > 0) {
-      const order = new Map(topIds.map((id, i) => [id, i]));
-      return data.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
-    }
-  }
-
-  // Fallback (no orders yet): most recently added active games.
-  const { data } = await supabase
-    .from("games")
-    .select("slug, name, cover_url, price")
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .limit(5);
-  return data ?? [];
-}
-
 export async function StorefrontHero() {
-  const [deal, newCount, bestSellers] = await Promise.all([
+  const [deal, newCount] = await Promise.all([
     getFeaturedDeal(),
     getNewThisWeekCount(),
-    getBestSellers(),
   ]);
 
   return (
@@ -136,30 +100,6 @@ export async function StorefrontHero() {
         </div>
       </div>
 
-      {bestSellers.length > 0 && (
-        <div className="mt-4">
-          <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Produk Terlaris</span>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-2">
-            {bestSellers.map((game) => (
-              <Link
-                key={game.slug}
-                href={`/game/${game.slug}`}
-                className="rounded-xl border border-border-subtle bg-surface overflow-hidden hover:border-accent/30 transition"
-              >
-                <div className="cover-container !rounded-none">
-                  {game.cover_url && (
-                    <Image src={game.cover_url} alt={game.name} fill unoptimized className="object-cover" />
-                  )}
-                </div>
-                <div className="p-1.5">
-                  <p className="text-foreground text-[11px] font-bold line-clamp-1">{game.name}</p>
-                  <p className="text-accent text-xs font-extrabold">{formatPrice(game.price)}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
