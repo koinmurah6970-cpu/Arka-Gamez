@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { sendWhatsApp } from "@/lib/fonnte";
-import { sendOrderStatusEmail } from "@/lib/email";
 import { STORE_NAME } from "@/lib/constants";
 import type { OrderStatus } from "@/lib/supabase/types";
 
@@ -45,9 +44,5 @@ export async function updateOrderStatus(id: string, formData: FormData) {
         : Promise.resolve(),
     ]).catch(() => {});
 
-    // email hanya kalau player_id berisi alamat email valid
-    if (order.player_id?.includes("@")) {
-      void sendOrderStatusEmail(order.player_id, name, order.order_number, status).catch(() => {});
-    }
   }
 }
