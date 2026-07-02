@@ -138,6 +138,7 @@ export default async function AdminRequestGamePage({
                     Chat WA
                   </a>
                   <RequestStatusSelect
+                    key={req.id + req.status}
                     requestId={req.id}
                     currentStatus={req.status as GameRequestStatus}
                   />
