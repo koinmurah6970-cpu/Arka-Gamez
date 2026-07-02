@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Pagination } from "@/components/pagination";
-import { updateRequestStatus } from "./actions";
+import { RequestStatusSelect } from "./status-select";
 import type { GameRequestStatus } from "@/lib/supabase/types";
 
 const PAGE_SIZE = 50;
@@ -137,23 +137,10 @@ export default async function AdminRequestGamePage({
                   >
                     Chat WA
                   </a>
-                  <form action={updateRequestStatus.bind(null, req.id)}>
-                    <select
-                      name="status"
-                      defaultValue={req.status}
-                      className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
-                      onChange={(e) => {
-                        const form = e.target.closest("form") as HTMLFormElement;
-                        form.requestSubmit();
-                      }}
-                    >
-                      {VALID_STATUSES.map((s) => (
-                        <option key={s} value={s}>
-                          {STATUS_LABEL[s]}
-                        </option>
-                      ))}
-                    </select>
-                  </form>
+                  <RequestStatusSelect
+                    requestId={req.id}
+                    currentStatus={req.status as GameRequestStatus}
+                  />
                 </div>
               </div>
             </div>
