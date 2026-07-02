@@ -38,17 +38,16 @@ export async function updateOrderStatus(id: string, formData: FormData) {
     const name = order.guest_name || "kak";
     const buildMsg = WA_MESSAGES[status];
 
-    try {
-      await Promise.all([
-        order.guest_whatsapp && buildMsg
-          ? sendWhatsApp(order.guest_whatsapp, buildMsg(name, order.order_number))
-          : Promise.resolve(),
-        order.player_id
-          ? sendOrderStatusEmail(order.player_id, name, order.order_number, status)
-          : Promise.resolve(),
-      ]);
-    } catch {
-      // notifikasi gagal tidak boleh block update status
+    // fire-and-forget: jangan await supaya action tidak hang
+    void Promise.all([
+      order.guest_whatsapp && buildMsg
+        ? sendWhatsApp(order.guest_whatsapp, buildMsg(name, order.order_number))
+        : Promise.resolve(),
+    ]).catch(() => {});
+
+    // email hanya kalau player_id berisi alamat email valid
+    if (order.player_id?.includes("@")) {
+      void sendOrderStatusEmail(order.player_id, name, order.order_number, status).catch(() => {});
     }
   }
 }
