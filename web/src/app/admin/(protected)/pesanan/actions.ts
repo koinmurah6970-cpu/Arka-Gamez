@@ -38,13 +38,17 @@ export async function updateOrderStatus(id: string, formData: FormData) {
     const name = order.guest_name || "kak";
     const buildMsg = WA_MESSAGES[status];
 
-    await Promise.all([
-      order.guest_whatsapp && buildMsg
-        ? sendWhatsApp(order.guest_whatsapp, buildMsg(name, order.order_number))
-        : Promise.resolve(),
-      order.player_id
-        ? sendOrderStatusEmail(order.player_id, name, order.order_number, status)
-        : Promise.resolve(),
-    ]);
+    try {
+      await Promise.all([
+        order.guest_whatsapp && buildMsg
+          ? sendWhatsApp(order.guest_whatsapp, buildMsg(name, order.order_number))
+          : Promise.resolve(),
+        order.player_id
+          ? sendOrderStatusEmail(order.player_id, name, order.order_number, status)
+          : Promise.resolve(),
+      ]);
+    } catch {
+      // notifikasi gagal tidak boleh block update status
+    }
   }
 }
