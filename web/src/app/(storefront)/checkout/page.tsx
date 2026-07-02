@@ -143,12 +143,13 @@ function CheckoutForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-xs font-bold text-muted uppercase mb-2">
-            Player ID Akun Game
+            Email
           </label>
           <input
+            type="email"
             value={playerId}
             onChange={(e) => setPlayerId(e.target.value)}
-            placeholder="Contoh: RezaID#12345"
+            placeholder="contoh@email.com"
             className="w-full bg-surface border border-border-subtle rounded-xl p-3 text-sm text-foreground focus:outline-none focus:border-accent transition"
           />
           {errors.playerId && <p className="text-red-500 text-xs mt-1">{errors.playerId}</p>}
