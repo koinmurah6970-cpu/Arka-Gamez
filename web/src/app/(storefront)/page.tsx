@@ -24,7 +24,7 @@ const getCategories = unstable_cache(
 
 // Only the columns ProductCard renders -- selecting "*" here would drag
 // `description` and other unused columns across every one of the 24 rows.
-const GAME_CARD_FIELDS = "id, slug, name, price, original_price, cover_url, is_new";
+const GAME_CARD_FIELDS = "id, slug, name, price, original_price, cover_url, is_new, size_label, category:categories(name)";
 
 export default async function HomePage({
   searchParams,

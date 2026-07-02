@@ -6,17 +6,26 @@ import { formatPrice, discountPercent } from "@/lib/format";
 import { useCart } from "./cart-context";
 import type { Game } from "@/lib/supabase/types";
 
-// Only the fields the grid card actually renders -- keeps the catalog list
-// query from pulling heavier columns (description, etc.) across 24 rows.
 export type GameCardData = Pick<
   Game,
-  "id" | "slug" | "name" | "price" | "original_price" | "cover_url" | "is_new"
->;
+  "id" | "slug" | "name" | "price" | "original_price" | "cover_url" | "is_new" | "size_label"
+> & {
+  category?: { name: string } | null;
+};
+
+const CATEGORY_STYLE: Record<string, string> = {
+  Berat: "bg-red-500/15 text-red-500",
+  "Agak Berat": "bg-orange-500/15 text-orange-500",
+  Sedang: "bg-blue-500/15 text-blue-500",
+  Ringan: "bg-green-500/15 text-green-500",
+};
 
 export function ProductCard({ game }: { game: GameCardData }) {
   const { addItem, items } = useCart();
   const inCart = items.some((i) => i.gameId === game.id);
   const discount = discountPercent(game.price, game.original_price);
+  const catName = game.category?.name ?? null;
+  const catStyle = catName ? (CATEGORY_STYLE[catName] ?? "bg-border-subtle text-muted") : null;
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
@@ -57,47 +66,53 @@ export function ProductCard({ game }: { game: GameCardData }) {
           </div>
         )}
       </div>
-      <div className="p-3.5 flex flex-col justify-between flex-grow">
-        <div>
-          <h3 className="text-[13px] font-bold text-foreground line-clamp-2 h-9 mb-2 leading-tight">
-            {game.name}
-          </h3>
+
+      <div className="p-3 flex flex-col flex-grow gap-2">
+        <h3 className="text-[13px] font-bold text-foreground line-clamp-2 leading-tight">
+          {game.name}
+        </h3>
+
+        {(game.size_label || catName) && (
           <div className="flex items-center gap-1.5 flex-wrap">
+            {game.size_label && (
+              <span className="text-[10px] font-semibold text-muted">
+                {game.size_label}
+              </span>
+            )}
+            {game.size_label && catName && (
+              <span className="text-muted text-[10px]">·</span>
+            )}
+            {catName && catStyle && (
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${catStyle}`}>
+                {catName.toUpperCase()}
+              </span>
+            )}
+          </div>
+        )}
+
+        <div className="mt-auto pt-1">
+          <div className="flex items-center gap-1.5 flex-wrap mb-1">
             <span className="text-accent font-bold text-sm">{formatPrice(game.price)}</span>
             <span className="text-muted text-[11px] line-through">
               {formatPrice(game.original_price)}
             </span>
           </div>
           {discount > 0 && (
-            <div className="text-[10px] font-bold text-emerald-500 uppercase mt-0.5 tracking-wide">
-              HEMAT {discount}%
+            <div className="text-[10px] font-bold text-emerald-500 uppercase tracking-wide mb-2">
+              DISKON {discount}%
             </div>
           )}
-        </div>
-        <div className="flex justify-end mt-3 mt-auto">
+
           <button
             onClick={handleAddToCart}
             aria-label="Tambah ke keranjang"
-            className={`p-2 border rounded-xl transition ${
+            className={`w-full py-2 rounded-xl text-[12px] font-bold transition ${
               inCart
-                ? "bg-accent/10 border-accent text-accent"
-                : "bg-background border-border-subtle hover:border-accent hover:bg-accent/10 text-muted hover:text-accent"
+                ? "bg-accent/15 text-accent border border-accent/30"
+                : "bg-accent text-accent-foreground hover:opacity-90"
             }`}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 0a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
+            {inCart ? "✓ Di Keranjang" : "Beli"}
           </button>
         </div>
       </div>
