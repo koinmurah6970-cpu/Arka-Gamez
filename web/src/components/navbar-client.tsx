@@ -117,7 +117,7 @@ export function NavbarClient({
                     <p className="px-4 py-2 text-xs text-muted truncate">{user.displayName}</p>
                     <div className="border-t border-border-subtle" />
                     <Link
-                      href="/cek-pesanan"
+                      href="/pesanan-saya"
                       onClick={() => setMenuOpen(false)}
                       className="block px-4 py-2.5 text-sm text-foreground hover:bg-border-subtle"
                     >
