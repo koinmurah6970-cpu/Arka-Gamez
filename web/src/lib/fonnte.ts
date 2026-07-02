@@ -20,6 +20,7 @@ export async function sendWhatsApp(phone: string, message: string): Promise<bool
         message,
         countryCode: "62",
       }),
+      signal: AbortSignal.timeout(6000),
     });
     const json = (await res.json()) as { status: boolean };
     return json.status === true;
