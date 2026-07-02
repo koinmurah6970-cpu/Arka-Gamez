@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const checkoutSchema = z.object({
-  playerId: z.string().trim().email("Format email tidak valid"),
   guestName: z.string().trim().min(2, "Nama minimal 2 karakter"),
   guestWhatsapp: z
     .string()

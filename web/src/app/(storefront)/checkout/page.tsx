@@ -8,7 +8,6 @@ import { createClient } from "@/lib/supabase/client";
 import { checkoutSchema } from "@/lib/validation";
 import { formatPrice } from "@/lib/format";
 import type { CartItem } from "@/components/cart-context";
-import { sendConfirmationEmail } from "./actions";
 
 function CheckoutForm() {
   const router = useRouter();
@@ -20,7 +19,6 @@ function CheckoutForm() {
   const [directItem, setDirectItem] = useState<CartItem | null>(null);
   const [directLoading, setDirectLoading] = useState(!!directId);
 
-  const [playerId, setPlayerId] = useState("");
   const [guestName, setGuestName] = useState("");
   const [guestWhatsapp, setGuestWhatsapp] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -60,7 +58,7 @@ function CheckoutForm() {
     e.preventDefault();
     setServerError(null);
 
-    const parsed = checkoutSchema.safeParse({ playerId, guestName, guestWhatsapp });
+    const parsed = checkoutSchema.safeParse({ guestName, guestWhatsapp });
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {};
       for (const issue of parsed.error.issues) {
@@ -74,7 +72,7 @@ function CheckoutForm() {
 
     const supabase = createClient();
     const { data: order, error } = await supabase.rpc("create_order", {
-      p_player_id: parsed.data.playerId,
+      p_player_id: parsed.data.guestWhatsapp,
       p_guest_name: parsed.data.guestName,
       p_guest_whatsapp: parsed.data.guestWhatsapp,
       p_items: items.map((i) => ({ game_id: i.gameId, name: i.name, price: i.price })),
@@ -91,18 +89,10 @@ function CheckoutForm() {
       "last-order",
       JSON.stringify({
         orderNumber: order.order_number,
-        playerId: parsed.data.playerId,
+        playerId: parsed.data.guestWhatsapp,
         items,
         total,
       })
-    );
-
-    sendConfirmationEmail(
-      parsed.data.playerId,
-      parsed.data.guestName,
-      order.order_number,
-      items.map((i) => ({ name: i.name, price: i.price })),
-      total
     );
 
     if (!isDirect) clear();
@@ -150,20 +140,6 @@ function CheckoutForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-xs font-bold text-muted uppercase mb-2">
-            Email
-          </label>
-          <input
-            type="email"
-            value={playerId}
-            onChange={(e) => setPlayerId(e.target.value)}
-            placeholder="contoh@email.com"
-            className="w-full bg-surface border border-border-subtle rounded-xl p-3 text-sm text-foreground focus:outline-none focus:border-accent transition"
-          />
-          {errors.playerId && <p className="text-red-500 text-xs mt-1">{errors.playerId}</p>}
-        </div>
-
         <div>
           <label className="block text-xs font-bold text-muted uppercase mb-2">
             Nama Lengkap
