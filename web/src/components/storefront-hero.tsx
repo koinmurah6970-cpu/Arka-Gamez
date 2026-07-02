@@ -27,10 +27,7 @@ async function getNewThisWeekCount() {
 }
 
 export async function StorefrontHero() {
-  const [deal, newCount] = await Promise.all([
-    getFeaturedDeal(),
-    getNewThisWeekCount(),
-  ]);
+  const deal = await getFeaturedDeal();
 
   return (
     <div className="mb-8">
@@ -78,23 +75,13 @@ export async function StorefrontHero() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Link
-            href="/"
-            className="rounded-2xl border border-border-subtle bg-gradient-to-br from-indigo-500/[0.08] to-transparent p-4 hover:border-accent/30 transition"
-          >
-            <span className="text-[10px] font-bold text-muted uppercase tracking-wider">
-              Baru Ditambahkan
-            </span>
-            <p className="text-foreground text-sm font-bold mt-1.5">{newCount} Game Minggu Ini</p>
-            <p className="text-muted text-xs mt-0.5">Lihat semua →</p>
-          </Link>
-          <Link
             href="/request-game"
             className="rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/[0.08] to-transparent p-4 hover:border-violet-500/40 transition"
           >
             <span className="text-[10px] font-bold text-muted uppercase tracking-wider">
               Gak Ada di Katalog?
             </span>
-            <p className="text-foreground text-sm font-bold mt-1.5">✨ Request Game</p>
+            <p className="text-foreground text-sm font-bold mt-1.5">Request Game</p>
             <p className="text-muted text-xs mt-0.5">Kabarin kita →</p>
           </Link>
         </div>
