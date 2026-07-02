@@ -59,6 +59,7 @@ export default async function HomePage({
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
   const { data: games, count } = await query
+    .order("is_new", { ascending: false })
     .order("created_at", { ascending: false })
     .range(from, to);
 
