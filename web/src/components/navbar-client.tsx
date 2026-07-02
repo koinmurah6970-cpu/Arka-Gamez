@@ -37,10 +37,10 @@ export function NavbarClient({
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <div className="h-8 w-8 bg-[#0b0f19] rounded-lg flex items-center justify-center font-black text-white italic text-lg">
-              G
+              L
             </div>
             <span className="text-lg font-extrabold tracking-tight text-foreground">
-              GAMOS <span className="text-muted font-medium">GAMES</span>
+              Link <span className="text-muted font-medium">Yu</span>
             </span>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-muted">

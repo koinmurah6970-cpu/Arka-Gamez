@@ -104,7 +104,7 @@ export default async function AdminDashboardPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-xs text-gray-400 mt-0.5">Ringkasan toko GAMOS</p>
+        <p className="text-xs text-gray-400 mt-0.5">Ringkasan toko Link Yu</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">

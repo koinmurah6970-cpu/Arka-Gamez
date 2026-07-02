@@ -70,10 +70,10 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
         <div className="flex items-center gap-2 mb-6">
           <div className="h-8 w-8 bg-[#0b0f19] rounded-lg flex items-center justify-center font-black text-white italic text-lg">
-            G
+            L
           </div>
           <h1 className="text-lg font-extrabold tracking-tight text-gray-900">
-            GAMOS <span className="text-gray-500 font-medium">ADMIN</span>
+            Link Yu <span className="text-gray-500 font-medium">ADMIN</span>
           </h1>
         </div>
 

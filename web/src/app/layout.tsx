@@ -9,14 +9,14 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gamos-store.vercel.app"),
+  metadataBase: new URL("https://link-yu.vercel.app"),
   title: {
-    default: "GAMOS STORE - Jelajahi Koleksi",
-    template: "%s | GAMOS STORE",
+    default: "Link Yu - Jelajahi Koleksi",
+    template: "%s | Link Yu",
   },
   description: "Jual & instalasi game PC/Laptop, ribuan koleksi siap pakai.",
   openGraph: {
-    siteName: "GAMOS STORE",
+    siteName: "Link Yu",
     type: "website",
     locale: "id_ID",
   },

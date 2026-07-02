@@ -6,7 +6,7 @@ import { StatusSelect } from "./status-select";
 
 function buildWhatsAppLink(phone: string, orderNumber: string, playerId: string) {
   const digits = phone.replace(/\D/g, "").replace(/^0/, "62");
-  const message = `Halo, saya admin GAMOS STORE. Mau konfirmasi pesanan ${orderNumber} (Player ID: ${playerId}).`;
+  const message = `Halo, saya admin Link Yu. Mau konfirmasi pesanan ${orderNumber} (Player ID: ${playerId}).`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 

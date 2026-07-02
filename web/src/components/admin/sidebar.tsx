@@ -87,9 +87,9 @@ export function AdminSidebar({ displayName }: { displayName: string }) {
     <>
       <div className="p-4 flex items-center gap-2.5 border-b border-white/[0.06]">
         <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center font-black italic text-sm text-white shadow-lg shadow-blue-500/25">
-          G
+          L
         </div>
-        <span className="font-bold text-[15px] tracking-tight text-white">GAMOS</span>
+        <span className="font-bold text-[15px] tracking-tight text-white">Link Yu</span>
         <span className="text-[10px] font-semibold text-gray-500 bg-white/[0.06] px-1.5 py-0.5 rounded">ADMIN</span>
       </div>
 
@@ -134,7 +134,7 @@ export function AdminSidebar({ displayName }: { displayName: string }) {
           <div className="h-7 w-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center font-black italic text-xs text-white">
             G
           </div>
-          <span className="font-bold text-sm text-white">GAMOS</span>
+          <span className="font-bold text-sm text-white">Link Yu</span>
           <span className="text-[9px] font-semibold text-gray-500 bg-white/[0.06] px-1.5 py-0.5 rounded">ADMIN</span>
         </Link>
         <div className="flex items-center gap-1">

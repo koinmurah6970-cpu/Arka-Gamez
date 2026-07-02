@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Promo",
-  description: "Promo & bundling terbaru dari GAMOS STORE.",
+  description: "Promo & bundling terbaru dari Link Yu.",
 };
 
 const ACCENTS = [
