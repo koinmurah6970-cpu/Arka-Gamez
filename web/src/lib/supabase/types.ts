@@ -97,6 +97,20 @@ export type Review = {
   created_at: string;
 };
 
+export type GameRequestStatus = "pending" | "fulfilled" | "rejected";
+
+export type GameRequest = {
+  id: string;
+  game_name: string;
+  platform: string | null;
+  notes: string | null;
+  requester_name: string;
+  requester_wa: string;
+  status: GameRequestStatus;
+  admin_notes: string | null;
+  created_at: string;
+};
+
 export type StoreSettings = {
   id: number;
   wa_admin_number: string;
@@ -204,6 +218,12 @@ export type Database = {
         Row: PromoCard;
         Insert: Partial<PromoCard>;
         Update: Partial<PromoCard>;
+        Relationships: [];
+      };
+      game_requests: {
+        Row: GameRequest;
+        Insert: Partial<GameRequest>;
+        Update: Partial<GameRequest>;
         Relationships: [];
       };
     };

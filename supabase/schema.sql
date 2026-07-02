@@ -339,6 +339,39 @@ create policy "promo_cards_public_read" on public.promo_cards for select using (
 create policy "promo_cards_admin_write" on public.promo_cards for all using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================
+-- game_requests: customer-submitted game requests
+-- ============================================================
+create table if not exists public.game_requests (
+  id              uuid primary key default gen_random_uuid(),
+  game_name       text not null,
+  platform        text,
+  notes           text,
+  requester_name  text not null,
+  requester_wa    text not null,
+  status          text not null default 'pending'
+                  check (status in ('pending','fulfilled','rejected')),
+  admin_notes     text,
+  created_at      timestamptz not null default now()
+);
+
+create index if not exists idx_game_requests_status on public.game_requests (status);
+create index if not exists idx_game_requests_created on public.game_requests (created_at desc);
+
+alter table public.game_requests enable row level security;
+
+-- anyone (anon + authenticated) can submit a request
+create policy "game_requests_anon_insert" on public.game_requests
+  for insert to anon, authenticated with check (true);
+
+-- only admin can view / update / delete
+create policy "game_requests_admin_select" on public.game_requests
+  for select using (public.is_admin());
+create policy "game_requests_admin_update" on public.game_requests
+  for update using (public.is_admin()) with check (public.is_admin());
+create policy "game_requests_admin_delete" on public.game_requests
+  for delete using (public.is_admin());
+
+-- ============================================================
 -- Storage bucket for normalized cover art (create via dashboard
 -- or supabase CLI if this block is skipped by your SQL editor)
 -- ============================================================

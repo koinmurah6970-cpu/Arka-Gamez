@@ -1,34 +1,29 @@
 import type { Metadata } from "next";
-import { STORE_NAME } from "@/lib/constants";
 import { getStoreSettings } from "@/lib/store-settings";
+import { RequestForm } from "./request-form";
 
 export const metadata: Metadata = {
   title: "Request Game",
-  description: "Gak nemu game yang kamu cari? Kabarin admin, kita carikan.",
+  description: "Gak nemu game yang kamu cari? Request ke kami — kami carikan dan kabarin balik.",
 };
 
 export default async function RequestGamePage() {
   const { waAdminNumber } = await getStoreSettings();
-  const waLink = `https://wa.me/${waAdminNumber}?text=${encodeURIComponent(
-    `Halo Admin ${STORE_NAME}, saya mau request game yang belum ada di katalog: `
-  )}`;
 
   return (
-    <main className="container mx-auto px-4 py-16 max-w-lg text-center">
-      <div className="text-4xl mb-4">✨</div>
-      <h1 className="text-2xl font-bold text-foreground mb-2">Request Game</h1>
-      <p className="text-sm text-muted mb-8">
-        Fitur form request lagi disiapkan. Sementara ini, langsung kabarin admin lewat
-        WhatsApp — kasih tau judul game yang kamu cari, kita carikan.
-      </p>
-      <a
-        href={waLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-block bg-accent text-accent-foreground font-bold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition"
-      >
-        💬 Request via WhatsApp
-      </a>
+    <main className="container mx-auto px-4 py-12 max-w-lg">
+      <div className="text-center mb-8">
+        <div className="text-4xl mb-3">🎮</div>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Request Game</h1>
+        <p className="text-sm text-muted">
+          Game yang kamu cari belum ada di katalog? Isi form di bawah — admin akan
+          follow-up ke WhatsApp kamu kalau game sudah tersedia.
+        </p>
+      </div>
+
+      <div className="bg-surface border border-border-subtle rounded-2xl p-6 shadow-sm">
+        <RequestForm waAdminNumber={waAdminNumber} />
+      </div>
     </main>
   );
 }
