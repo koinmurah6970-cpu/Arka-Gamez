@@ -13,6 +13,7 @@ export function RequestForm({ waAdminNumber }: { waAdminNumber: string }) {
   const [notes, setNotes] = useState("");
   const [requesterName, setRequesterName] = useState("");
   const [requesterWa, setRequesterWa] = useState("");
+  const [hp, setHp] = useState(""); // honeypot — harus kosong
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -21,6 +22,12 @@ export function RequestForm({ waAdminNumber }: { waAdminNumber: string }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setServerError(null);
+
+    // Honeypot: bot mengisi field tersembunyi → tolak diam-diam
+    if (hp) {
+      setSubmitted(true);
+      return;
+    }
 
     const parsed = gameRequestSchema.safeParse({
       gameName,
@@ -41,17 +48,23 @@ export function RequestForm({ waAdminNumber }: { waAdminNumber: string }) {
     setSubmitting(true);
 
     const supabase = createClient();
-    const { error } = await supabase.from("game_requests").insert({
-      game_name: parsed.data.gameName,
-      platform: parsed.data.platform ?? null,
-      notes: parsed.data.notes ?? null,
-      requester_name: parsed.data.requesterName,
-      requester_wa: parsed.data.requesterWa,
+    const { data, error } = await supabase.rpc("submit_game_request", {
+      p_game_name: parsed.data.gameName,
+      p_platform: parsed.data.platform ?? null,
+      p_notes: parsed.data.notes ?? null,
+      p_requester_name: parsed.data.requesterName,
+      p_requester_wa: parsed.data.requesterWa,
     });
 
     setSubmitting(false);
-    if (error) {
-      setServerError("Gagal mengirim request, coba lagi sebentar lagi.");
+
+    if (error || data?.error) {
+      const isRateLimit = data?.error === "rate_limit_exceeded";
+      setServerError(
+        isRateLimit
+          ? "Terlalu banyak request dari nomor ini. Coba lagi dalam 1 jam."
+          : "Gagal mengirim request, coba lagi sebentar lagi."
+      );
       return;
     }
     setSubmitted(true);
@@ -90,6 +103,7 @@ export function RequestForm({ waAdminNumber }: { waAdminNumber: string }) {
               setNotes("");
               setRequesterName("");
               setRequesterWa("");
+              setHp("");
             }}
             className="text-accent hover:underline"
           >
@@ -107,6 +121,18 @@ export function RequestForm({ waAdminNumber }: { waAdminNumber: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 text-left">
+      {/* Honeypot — disembunyikan dari user, bot cenderung mengisi */}
+      <input
+        type="text"
+        name="website"
+        value={hp}
+        onChange={(e) => setHp(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        style={{ display: "none" }}
+      />
+
       <div>
         <label className={labelClass}>Judul Game *</label>
         <input

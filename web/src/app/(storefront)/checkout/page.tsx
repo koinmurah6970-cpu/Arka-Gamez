@@ -21,6 +21,7 @@ function CheckoutForm() {
 
   const [guestName, setGuestName] = useState("");
   const [guestWhatsapp, setGuestWhatsapp] = useState("");
+  const [hp, setHp] = useState(""); // honeypot
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -58,6 +59,13 @@ function CheckoutForm() {
     e.preventDefault();
     setServerError(null);
 
+    // Honeypot: bot mengisi field tersembunyi → tolak diam-diam
+    if (hp) {
+      if (!isDirect) clear();
+      router.push("/");
+      return;
+    }
+
     const parsed = checkoutSchema.safeParse({ guestName, guestWhatsapp });
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {};
@@ -81,7 +89,12 @@ function CheckoutForm() {
     setSubmitting(false);
 
     if (error || !order) {
-      setServerError("Gagal membuat pesanan, coba lagi sebentar lagi.");
+      const isRateLimit = error?.message?.includes("rate_limit_exceeded");
+      setServerError(
+        isRateLimit
+          ? "Terlalu banyak pesanan dari nomor ini. Coba lagi dalam 1 jam."
+          : "Gagal membuat pesanan, coba lagi sebentar lagi."
+      );
       return;
     }
 
@@ -140,6 +153,17 @@ function CheckoutForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Honeypot — disembunyikan dari user, bot cenderung mengisi */}
+        <input
+          type="text"
+          name="website"
+          value={hp}
+          onChange={(e) => setHp(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          style={{ display: "none" }}
+        />
         <div>
           <label className="block text-xs font-bold text-muted uppercase mb-2">
             Nama Lengkap

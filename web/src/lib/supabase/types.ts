@@ -238,6 +238,16 @@ export type Database = {
         };
         Returns: Order;
       };
+      submit_game_request: {
+        Args: {
+          p_game_name: string;
+          p_platform: string | null;
+          p_notes: string | null;
+          p_requester_name: string;
+          p_requester_wa: string;
+        };
+        Returns: { success?: boolean; error?: string };
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
