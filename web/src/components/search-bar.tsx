@@ -73,6 +73,7 @@ export function SearchBar() {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Cari game..."
+        aria-label="Cari game"
         className="w-full bg-surface border border-border-subtle rounded-2xl py-3.5 pl-11 pr-4 text-sm text-foreground placeholder-muted focus:outline-none focus:border-accent transition"
       />
     </div>

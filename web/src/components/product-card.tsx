@@ -116,7 +116,7 @@ export function ProductCard({ game }: { game: GameCardData }) {
               onClick={handleAddToCart}
               aria-label={inCart ? "Sudah di keranjang" : "Tambah ke keranjang"}
               title={inCart ? "Sudah di keranjang" : "Tambah ke keranjang"}
-              className={`flex-none flex items-center justify-center w-9 h-9 rounded-xl border transition ${
+              className={`flex-none flex items-center justify-center w-11 h-11 rounded-xl border transition ${
                 inCart
                   ? "border-accent/30 bg-accent/10 text-accent"
                   : "border-border-subtle bg-surface hover:border-accent/40 hover:text-accent text-muted"

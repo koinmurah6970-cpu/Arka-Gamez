@@ -46,7 +46,7 @@ export default function CartPage() {
                 <button
                   onClick={() => removeItem(item.gameId)}
                   aria-label="Hapus dari keranjang"
-                  className="text-muted hover:text-red-500 font-bold text-xl"
+                  className="flex items-center justify-center w-11 h-11 text-muted hover:text-red-500 font-bold text-xl rounded-lg transition"
                 >
                   &times;
                 </button>

@@ -37,13 +37,14 @@ export function CategoryFilter({ categories }: { categories: Category[] }) {
       }`}
     >
       {tags.map((tag) => (
-        <div
+        <button
           key={tag}
           onClick={() => select(tag)}
+          aria-pressed={active === tag}
           className={`category-tag ${active === tag ? "active" : ""}`}
         >
           {tag === CATEGORY_ALL ? "🏷️ Semua" : tag}
-        </div>
+        </button>
       ))}
     </div>
   );
