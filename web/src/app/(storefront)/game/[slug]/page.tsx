@@ -160,7 +160,7 @@ export default async function GameDetailPage({
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         <div className="md:col-span-7">
-          <GameMediaGallery media={media} fallbackImage={game.cover_url} gameName={game.name} />
+          <GameMediaGallery media={media} fallbackImage={game.cover_url} gameName={game.name} sourceId={game.source_id} />
         </div>
 
         <div className="md:col-span-5 flex flex-col justify-start gap-6">

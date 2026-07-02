@@ -54,32 +54,60 @@ function VideoPlayer({ src, poster }: { src: string; poster?: string | null }) {
   return <HlsVideo src={src} poster={poster} />;
 }
 
+function isSteamAppId(sourceId: string | null | undefined): sourceId is string {
+  if (!sourceId) return false;
+  const n = parseInt(sourceId, 10);
+  return !isNaN(n) && n > 0 && n < 4_000_000;
+}
+
 export function GameMediaGallery({
   media,
   fallbackImage,
   gameName,
+  sourceId,
 }: {
   media: GameMedia[];
   fallbackImage: string | null;
   gameName: string;
+  sourceId?: string | null;
 }) {
+  const steamHeaderUrl = isSteamAppId(sourceId)
+    ? `https://cdn.akamai.steamstatic.com/steam/apps/${sourceId}/header.jpg`
+    : null;
+
+  const [headerFailed, setHeaderFailed] = useState(false);
+
+  const noMedia = media.length === 0;
+  const showHeader = noMedia && !!steamHeaderUrl && !headerFailed;
+  const isCoverOnly = noMedia && !showHeader && !!fallbackImage;
+
   const items: GameMedia[] =
     media.length > 0
       ? media
-      : fallbackImage
+      : showHeader
         ? [
             {
-              id: "fallback",
+              id: "steam-header",
               game_id: "",
               media_type: "image",
-              url: fallbackImage,
-              thumbnail_url: fallbackImage,
+              url: steamHeaderUrl!,
+              thumbnail_url: fallbackImage ?? steamHeaderUrl!,
               sort_order: 0,
             },
           ]
-        : [];
+        : fallbackImage
+          ? [
+              {
+                id: "fallback",
+                game_id: "",
+                media_type: "image",
+                url: fallbackImage,
+                thumbnail_url: fallbackImage,
+                sort_order: 0,
+              },
+            ]
+          : [];
 
-  const isCoverOnly = media.length === 0 && !!fallbackImage;
   const [activeIndex, setActiveIndex] = useState(0);
   const active = items[activeIndex];
 
@@ -102,6 +130,7 @@ export function GameMediaGallery({
           <img
             src={active.url}
             alt={gameName}
+            onError={active.id === "steam-header" ? () => setHeaderFailed(true) : undefined}
             className={`w-full h-full ${isCoverOnly ? "object-contain" : "object-cover"}`}
           />
         ) : null}
