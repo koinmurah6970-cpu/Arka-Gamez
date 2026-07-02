@@ -16,12 +16,12 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
 };
 
 const STATUS_STYLE: Record<OrderStatus, { idle: string; active: string }> = {
-  pending:    { idle: "bg-yellow-50  text-yellow-700  border-yellow-300",  active: "bg-yellow-400  text-white border-transparent shadow-md" },
-  confirmed:  { idle: "bg-blue-50    text-blue-700    border-blue-300",    active: "bg-blue-500    text-white border-transparent shadow-md" },
-  paid:       { idle: "bg-indigo-50  text-indigo-700  border-indigo-300",  active: "bg-indigo-500  text-white border-transparent shadow-md" },
-  processing: { idle: "bg-purple-50  text-purple-700  border-purple-300",  active: "bg-purple-500  text-white border-transparent shadow-md" },
-  completed:  { idle: "bg-emerald-50 text-emerald-700 border-emerald-300", active: "bg-emerald-500 text-white border-transparent shadow-md" },
-  cancelled:  { idle: "bg-red-50     text-red-600     border-red-300",     active: "bg-red-500     text-white border-transparent shadow-md" },
+  pending:    { idle: "bg-white text-gray-600 border-gray-200", active: "bg-gray-900 text-white border-transparent shadow-md" },
+  confirmed:  { idle: "bg-white text-gray-600 border-gray-200", active: "bg-gray-900 text-white border-transparent shadow-md" },
+  paid:       { idle: "bg-white text-gray-600 border-gray-200", active: "bg-gray-900 text-white border-transparent shadow-md" },
+  processing: { idle: "bg-white text-gray-600 border-gray-200", active: "bg-gray-900 text-white border-transparent shadow-md" },
+  completed:  { idle: "bg-white text-gray-600 border-gray-200", active: "bg-gray-900 text-white border-transparent shadow-md" },
+  cancelled:  { idle: "bg-white text-gray-600 border-gray-200", active: "bg-gray-900 text-white border-transparent shadow-md" },
 };
 
 export function StatusSelect({
