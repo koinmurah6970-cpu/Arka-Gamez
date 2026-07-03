@@ -62,14 +62,27 @@ export function ProductCard({ game }: { game: GameCardData }) {
         )}
         <WishlistButton gameId={game.id} variant="compact" />
         {game.cover_url ? (
-          <Image
-            src={game.cover_url}
-            alt={game.name}
-            fill
-            unoptimized
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-            className="cover-img object-cover"
-          />
+          <>
+            {/* Blurred background layer — fills dead space for non-3:4 covers */}
+            <Image
+              src={game.cover_url}
+              alt=""
+              fill
+              unoptimized
+              aria-hidden="true"
+              className="object-cover scale-110 blur-lg opacity-60"
+            />
+            <div className="absolute inset-0 bg-black/20" />
+            {/* Actual cover — object-contain so nothing gets cropped */}
+            <Image
+              src={game.cover_url}
+              alt={game.name}
+              fill
+              unoptimized
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+              className="object-contain relative z-[2]"
+            />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted text-xs font-semibold">
             No Cover
