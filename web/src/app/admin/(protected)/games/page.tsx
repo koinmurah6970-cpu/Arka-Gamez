@@ -50,7 +50,18 @@ export default async function AdminGamesPage({
       count: "exact",
     });
 
-  if (q) query = query.ilike("name", `%${q}%`);
+  if (q) {
+    const lowerQ = q.toLowerCase();
+    if (lowerQ.includes("gta")) {
+      const expanded = q.replace(/gta/gi, "grand theft auto");
+      query = query.or(`name.ilike.%${q}%,name.ilike.%${expanded}%`);
+    } else if (lowerQ.includes("grand theft auto")) {
+      const contracted = q.replace(/grand theft auto/gi, "gta");
+      query = query.or(`name.ilike.%${q}%,name.ilike.%${contracted}%`);
+    } else {
+      query = query.ilike("name", `%${q}%`);
+    }
+  }
   if (params.status && VALID_STATUSES.includes(params.status as GameStatus)) {
     query = query.eq("status", params.status as GameStatus);
   }

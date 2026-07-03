@@ -54,7 +54,18 @@ export default async function HomePage({
     .select(GAME_CARD_FIELDS, { count: "exact" })
     .eq("status", "active");
 
-  if (q) query = query.ilike("name", `%${q}%`);
+  if (q) {
+    const lowerQ = q.toLowerCase();
+    if (lowerQ.includes("gta")) {
+      const expanded = q.replace(/gta/gi, "grand theft auto");
+      query = query.or(`name.ilike.%${q}%,name.ilike.%${expanded}%`);
+    } else if (lowerQ.includes("grand theft auto")) {
+      const contracted = q.replace(/grand theft auto/gi, "gta");
+      query = query.or(`name.ilike.%${q}%,name.ilike.%${contracted}%`);
+    } else {
+      query = query.ilike("name", `%${q}%`);
+    }
+  }
   if (kategori) {
     const cat = categories.find((c) => c.name === kategori);
     if (cat) query = query.eq("category_id", cat.id);

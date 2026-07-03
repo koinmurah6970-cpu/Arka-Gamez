@@ -72,11 +72,24 @@ export default function CekSpekPage() {
         setHits([]);
         return;
       }
-      const { data } = await supabase
+      let query = supabase
         .from("games")
         .select("id, slug, name, cover_url, category:categories(name)")
-        .eq("status", "active")
-        .ilike("name", `%${searchQuery}%`)
+        .eq("status", "active");
+
+      const q = searchQuery.trim();
+      const lowerQ = q.toLowerCase();
+      if (lowerQ.includes("gta")) {
+        const expanded = q.replace(/gta/gi, "grand theft auto");
+        query = query.or(`name.ilike.%${q}%,name.ilike.%${expanded}%`);
+      } else if (lowerQ.includes("grand theft auto")) {
+        const contracted = q.replace(/grand theft auto/gi, "gta");
+        query = query.or(`name.ilike.%${q}%,name.ilike.%${contracted}%`);
+      } else {
+        query = query.ilike("name", `%${q}%`);
+      }
+
+      const { data } = await query
         .order("name", { ascending: true })
         .limit(5);
       setHits((data ?? []) as unknown as GameSearchHit[]);

@@ -36,11 +36,24 @@ export function NavbarClient({
 
   const fetchHits = useCallback(async (q: string) => {
     if (!q.trim()) { setHits([]); setDropOpen(false); return; }
-    const { data } = await supabase
+    let query = supabase
       .from("games")
       .select("slug, name, price, original_price, cover_url")
-      .eq("status", "active")
-      .ilike("name", `%${q}%`)
+      .eq("status", "active");
+
+    const trimmedQ = q.trim();
+    const lowerQ = trimmedQ.toLowerCase();
+    if (lowerQ.includes("gta")) {
+      const expanded = trimmedQ.replace(/gta/gi, "grand theft auto");
+      query = query.or(`name.ilike.%${trimmedQ}%,name.ilike.%${expanded}%`);
+    } else if (lowerQ.includes("grand theft auto")) {
+      const contracted = trimmedQ.replace(/grand theft auto/gi, "gta");
+      query = query.or(`name.ilike.%${trimmedQ}%,name.ilike.%${contracted}%`);
+    } else {
+      query = query.ilike("name", `%${trimmedQ}%`);
+    }
+
+    const { data } = await query
       .order("is_new", { ascending: false })
       .order("name", { ascending: true })
       .limit(8);
