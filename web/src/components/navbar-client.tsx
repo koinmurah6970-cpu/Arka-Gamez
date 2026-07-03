@@ -1,11 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "./cart-context";
 import { createClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "./theme-toggle";
+
+type GameHit = {
+  slug: string;
+  name: string;
+  price: number;
+  original_price: number | null;
+  cover_url: string | null;
+};
+
+const supabase = createClient();
 
 export function NavbarClient({
   user,
@@ -16,12 +27,47 @@ export function NavbarClient({
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [hits, setHits] = useState<GameHit[]>([]);
+  const [dropOpen, setDropOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const fetchHits = useCallback(async (q: string) => {
+    if (!q.trim()) { setHits([]); setDropOpen(false); return; }
+    const { data } = await supabase
+      .from("games")
+      .select("slug, name, price, original_price, cover_url")
+      .eq("status", "active")
+      .ilike("name", `%${q}%`)
+      .order("is_new", { ascending: false })
+      .order("name", { ascending: true })
+      .limit(8);
+    setHits(data ?? []);
+    setDropOpen(true);
+  }, []);
+
+  useEffect(() => { fetchHits(searchValue); }, [searchValue, fetchHits]);
+
+  useEffect(() => {
+    function onPointerDown(e: PointerEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setDropOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, []);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const q = searchValue.trim();
+    setDropOpen(false);
     router.push(q ? `/?q=${encodeURIComponent(q)}` : "/");
   }
+
+  const discount = (g: GameHit) =>
+    g.original_price && g.original_price > g.price
+      ? Math.round((1 - g.price / g.original_price) * 100)
+      : null;
 
   async function handleLogout() {
     const supabase = createClient();
@@ -56,16 +102,62 @@ export function NavbarClient({
           </div>
         </div>
 
-        <form onSubmit={handleSearch} className="hidden md:block flex-1 max-w-xs mx-4">
-          <input
-            type="search"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Cari game..."
-            aria-label="Cari game"
-            className="w-full bg-border-subtle border border-transparent rounded-xl px-3.5 py-2 text-sm text-foreground focus:outline-none focus:border-accent transition"
-          />
-        </form>
+        <div ref={searchRef} className="hidden md:block flex-1 max-w-xs mx-4 relative">
+          <form onSubmit={handleSearch}>
+            <input
+              type="search"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onFocus={() => { if (hits.length > 0) setDropOpen(true); }}
+              placeholder="Cari game..."
+              aria-label="Cari game"
+              autoComplete="off"
+              className="w-full bg-border-subtle border border-transparent rounded-xl px-3.5 py-2 text-sm text-foreground focus:outline-none focus:border-accent transition"
+            />
+          </form>
+
+          {dropOpen && hits.length > 0 && (
+            <div className="absolute top-full mt-2 w-80 bg-surface border border-border-subtle rounded-2xl shadow-xl z-50 overflow-hidden">
+              {hits.map((g) => {
+                const pct = discount(g);
+                return (
+                  <Link
+                    key={g.slug}
+                    href={`/game/${g.slug}`}
+                    onClick={() => { setDropOpen(false); setSearchValue(""); }}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-border-subtle transition-colors group"
+                  >
+                    <div className="w-10 h-14 rounded-lg overflow-hidden flex-none bg-border-subtle">
+                      {g.cover_url ? (
+                        <Image src={g.cover_url} alt={g.name} width={40} height={56}
+                          className="w-full h-full object-cover" />
+                      ) : <div className="w-full h-full" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate group-hover:text-accent transition-colors">
+                        {g.name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {pct && <span className="text-xs font-bold text-emerald-400">-{pct}%</span>}
+                        <span className="text-xs text-muted">Rp {g.price.toLocaleString("id-ID")}</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setDropOpen(false);
+                  router.push(searchValue.trim() ? `/?q=${encodeURIComponent(searchValue.trim())}` : "/");
+                }}
+                className="w-full px-4 py-2.5 text-xs text-accent font-semibold border-t border-border-subtle hover:bg-border-subtle transition-colors text-center"
+              >
+                Lihat semua hasil untuk &ldquo;{searchValue}&rdquo; →
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center gap-3">
           <ThemeToggle />
