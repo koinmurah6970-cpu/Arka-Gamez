@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatPrice, discountPercent } from "@/lib/format";
 import { useCart } from "./cart-context";
+import { WishlistButton } from "./wishlist-button";
 import type { Game } from "@/lib/supabase/types";
 
 export type GameCardData = Pick<
@@ -59,6 +60,7 @@ export function ProductCard({ game }: { game: GameCardData }) {
             BARU
           </span>
         )}
+        <WishlistButton gameId={game.id} variant="compact" />
         {game.cover_url ? (
           <Image
             src={game.cover_url}

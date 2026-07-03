@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { CartProvider } from "@/components/cart-context";
+import { WishlistProvider } from "@/components/wishlist-context";
 
 export default function StorefrontLayout({
   children,
@@ -9,9 +10,11 @@ export default function StorefrontLayout({
 }) {
   return (
     <CartProvider>
-      <Navbar />
-      {children}
-      <Footer />
+      <WishlistProvider>
+        <Navbar />
+        {children}
+        <Footer />
+      </WishlistProvider>
     </CartProvider>
   );
 }

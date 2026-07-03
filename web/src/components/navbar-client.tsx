@@ -236,6 +236,13 @@ export function NavbarClient({
                     >
                       Pesanan Saya
                     </Link>
+                    <Link
+                      href="/wishlist"
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-foreground hover:bg-border-subtle"
+                    >
+                      Wishlist
+                    </Link>
                     {user.role === "admin" && (
                       <Link
                         href="/admin"

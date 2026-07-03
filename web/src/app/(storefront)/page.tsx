@@ -8,6 +8,8 @@ import { CategoryFilter } from "@/components/category-filter";
 import { Pagination } from "@/components/pagination";
 import { StorefrontHero } from "@/components/storefront-hero";
 import { SortSelect } from "@/components/sort-select";
+import { SortPendingProvider } from "@/components/sort-pending-context";
+import { CatalogGridFade } from "@/components/catalog-grid-fade";
 import { PAGE_SIZE } from "@/lib/constants";
 
 // Categories barely ever change -- cache them instead of round-tripping to
@@ -88,26 +90,31 @@ export default async function HomePage({
       <Suspense fallback={<div className="h-[60px]" />}>
         <SearchBar />
       </Suspense>
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <Suspense fallback={<div className="h-[40px]" />}>
-          <CategoryFilter categories={categories} />
-        </Suspense>
-        <Suspense fallback={<div className="h-[40px]" />}>
-          <SortSelect />
-        </Suspense>
-      </div>
 
-      {games && games.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mt-4">
-          {games.map((game) => (
-            <ProductCard key={game.id} game={game} />
-          ))}
+      <SortPendingProvider>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <Suspense fallback={<div className="h-[40px]" />}>
+            <CategoryFilter categories={categories} />
+          </Suspense>
+          <Suspense fallback={<div className="h-[40px]" />}>
+            <SortSelect />
+          </Suspense>
         </div>
-      ) : (
-        <div className="text-center py-20 text-muted text-sm">
-          Tidak ada game ditemukan.
-        </div>
-      )}
+
+        <CatalogGridFade>
+          {games && games.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mt-4">
+              {games.map((game) => (
+                <ProductCard key={game.id} game={game} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 text-muted text-sm">
+              Tidak ada game ditemukan.
+            </div>
+          )}
+        </CatalogGridFade>
+      </SortPendingProvider>
 
       <Pagination
         currentPage={page}

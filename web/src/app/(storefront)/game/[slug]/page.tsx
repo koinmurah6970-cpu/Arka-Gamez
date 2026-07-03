@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { GameMediaGallery } from "@/components/game-media-gallery";
 import { PurchasePanel } from "@/components/purchase-panel";
+import { ProductCard, type GameCardData } from "@/components/product-card";
 import { StarRating } from "@/components/star-rating";
 import { ReviewForm } from "@/components/review-form";
 import { ReviewList } from "@/components/review-list";
@@ -21,7 +22,7 @@ const getGame = cache(async (slug: string) => {
 
   if (!game) return null;
 
-  const [{ data: media }, { data: reviews }, { count: orderCount }] =
+  const [{ data: media }, { data: reviews }, { count: orderCount }, { data: relatedRaw }] =
     await Promise.all([
       supabase
         .from("game_media")
@@ -37,6 +38,17 @@ const getGame = cache(async (slug: string) => {
         .from("order_items")
         .select("*", { count: "exact", head: true })
         .eq("game_id", game.id),
+      game.category_id
+        ? supabase
+            .from("games")
+            .select("id, slug, name, price, original_price, cover_url, is_new, size_label, category:categories(name)")
+            .eq("status", "active")
+            .eq("category_id", game.category_id)
+            .neq("id", game.id)
+            .order("is_new", { ascending: false })
+            .order("created_at", { ascending: false })
+            .limit(5)
+        : Promise.resolve({ data: [] }),
     ]);
 
   return {
@@ -44,6 +56,7 @@ const getGame = cache(async (slug: string) => {
     media: media ?? [],
     reviews: reviews ?? [],
     orderCount: orderCount ?? 0,
+    related: (relatedRaw ?? []) as GameCardData[],
   };
 });
 
@@ -85,7 +98,7 @@ export default async function GameDetailPage({
   const result = await getGame(slug);
   if (!result) notFound();
 
-  const { game, media, reviews, orderCount } = result;
+  const { game, media, reviews, orderCount, related } = result;
 
   const user = await getCurrentUser();
 
@@ -193,7 +206,7 @@ export default async function GameDetailPage({
       </div>
 
       <section className="mt-12">
-        <h2 className="text-lg font-bold text-foreground mb-6">Review & Testimoni</h2>
+        <h2 className="text-lg font-bold text-foreground mb-6">Review &amp; Testimoni</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           <div className="md:col-span-5">
@@ -214,6 +227,17 @@ export default async function GameDetailPage({
           </div>
         </div>
       </section>
+
+      {related.length > 0 && (
+        <section className="mt-14">
+          <h2 className="text-lg font-bold text-foreground mb-6">Kamu Mungkin Suka</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {related.map((g) => (
+              <ProductCard key={g.id} game={g} />
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
+import { useSortPending } from "./sort-pending-context";
 
 const SORT_OPTIONS = [
   { value: "relevan",    label: "Relevan" },
@@ -20,6 +21,9 @@ export function SortSelect() {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const active = (searchParams.get("sort") ?? "relevan") as SortValue;
+  const { notify } = useSortPending();
+
+  useEffect(() => { notify(isPending); }, [isPending, notify]);
 
   function onChange(val: SortValue) {
     const params = new URLSearchParams(searchParams.toString());

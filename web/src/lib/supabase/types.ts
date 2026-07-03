@@ -97,6 +97,13 @@ export type Review = {
   created_at: string;
 };
 
+export type Wishlist = {
+  id: string;
+  user_id: string;
+  game_id: string;
+  created_at: string;
+};
+
 export type GameRequestStatus = "pending" | "fulfilled" | "rejected";
 
 export type GameRequest = {
@@ -225,6 +232,20 @@ export type Database = {
         Insert: Partial<GameRequest>;
         Update: Partial<GameRequest>;
         Relationships: [];
+      };
+      wishlists: {
+        Row: Wishlist;
+        Insert: Partial<Wishlist>;
+        Update: Partial<Wishlist>;
+        Relationships: [
+          {
+            foreignKeyName: "wishlists_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: Record<string, never>;
