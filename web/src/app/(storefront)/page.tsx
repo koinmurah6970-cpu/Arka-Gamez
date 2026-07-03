@@ -7,6 +7,7 @@ import { SearchBar } from "@/components/search-bar";
 import { CategoryFilter } from "@/components/category-filter";
 import { Pagination } from "@/components/pagination";
 import { StorefrontHero } from "@/components/storefront-hero";
+import { SortSelect } from "@/components/sort-select";
 import { PAGE_SIZE } from "@/lib/constants";
 
 // Categories barely ever change -- cache them instead of round-tripping to
@@ -29,12 +30,13 @@ const GAME_CARD_FIELDS = "id, slug, name, price, original_price, cover_url, is_n
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; kategori?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; kategori?: string; page?: string; sort?: string }>;
 }) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
   const q = params.q?.trim() ?? "";
   const kategori = params.kategori;
+  const sort = params.sort ?? "relevan";
 
   const supabase = await createClient();
 
@@ -58,10 +60,15 @@ export default async function HomePage({
 
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
-  const { data: games, count } = await query
-    .order("is_new", { ascending: false })
-    .order("created_at", { ascending: false })
-    .range(from, to);
+
+  if (sort === "harga-asc")  query = query.order("price", { ascending: true });
+  else if (sort === "harga-desc") query = query.order("price", { ascending: false });
+  else if (sort === "diskon") query = query.order("original_price", { ascending: false }).order("price", { ascending: true });
+  else if (sort === "nama-az") query = query.order("name", { ascending: true });
+  else if (sort === "terbaru") query = query.order("created_at", { ascending: false });
+  else query = query.order("is_new", { ascending: false }).order("created_at", { ascending: false });
+
+  const { data: games, count } = await query.range(from, to);
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
@@ -81,9 +88,14 @@ export default async function HomePage({
       <Suspense fallback={<div className="h-[60px]" />}>
         <SearchBar />
       </Suspense>
-      <Suspense fallback={<div className="h-[40px]" />}>
-        <CategoryFilter categories={categories} />
-      </Suspense>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <Suspense fallback={<div className="h-[40px]" />}>
+          <CategoryFilter categories={categories} />
+        </Suspense>
+        <Suspense fallback={<div className="h-[40px]" />}>
+          <SortSelect />
+        </Suspense>
+      </div>
 
       {games && games.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mt-4">
@@ -100,7 +112,7 @@ export default async function HomePage({
       <Pagination
         currentPage={page}
         totalPages={totalPages}
-        searchParams={{ q: params.q, kategori: params.kategori }}
+        searchParams={{ q: params.q, kategori: params.kategori, sort: params.sort }}
       />
     </main>
   );

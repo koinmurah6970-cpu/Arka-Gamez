@@ -29,7 +29,10 @@ export function NavbarClient({
   const [searchValue, setSearchValue] = useState("");
   const [hits, setHits] = useState<GameHit[]>([]);
   const [dropOpen, setDropOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchHits = useCallback(async (q: string) => {
     if (!q.trim()) { setHits([]); setDropOpen(false); return; }
@@ -52,10 +55,18 @@ export function NavbarClient({
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setDropOpen(false);
       }
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(e.target as Node)) {
+        setMobileSearchOpen(false);
+      }
     }
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, []);
+
+  function openMobileSearch() {
+    setMobileSearchOpen(true);
+    setTimeout(() => mobileInputRef.current?.focus(), 50);
+  }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -160,6 +171,16 @@ export function NavbarClient({
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Search icon — mobile only */}
+          <button
+            onClick={openMobileSearch}
+            className="md:hidden p-2 text-muted hover:text-foreground hover:bg-border-subtle rounded-xl transition"
+            aria-label="Cari game"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
           <ThemeToggle />
 
           <Link
@@ -245,6 +266,66 @@ export function NavbarClient({
           )}
         </div>
       </div>
+      {/* Mobile search bar — slides in below navbar */}
+      {mobileSearchOpen && (
+        <div ref={mobileSearchRef} className="md:hidden border-t border-border-subtle bg-background/95 backdrop-blur-xl px-4 py-3 relative">
+          <form onSubmit={(e) => { e.preventDefault(); setMobileSearchOpen(false); router.push(searchValue.trim() ? `/?q=${encodeURIComponent(searchValue.trim())}` : "/"); }}>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted pointer-events-none">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+              <input
+                ref={mobileInputRef}
+                type="search"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Cari game..."
+                autoComplete="off"
+                className="w-full bg-surface border border-border-subtle rounded-xl pl-10 pr-10 py-2.5 text-sm text-foreground focus:outline-none focus:border-accent transition"
+              />
+              <button type="button" onClick={() => setMobileSearchOpen(false)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-muted hover:text-foreground">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </form>
+
+          {/* Mobile dropdown */}
+          {hits.length > 0 && searchValue && (
+            <div className="mt-2 bg-surface border border-border-subtle rounded-2xl overflow-hidden shadow-xl">
+              {hits.map((g) => {
+                const pct = discount(g);
+                return (
+                  <Link key={g.slug} href={`/game/${g.slug}`}
+                    onClick={() => { setMobileSearchOpen(false); setSearchValue(""); }}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-border-subtle transition-colors group">
+                    <div className="w-10 h-14 rounded-lg overflow-hidden flex-none bg-border-subtle">
+                      {g.cover_url
+                        ? <Image src={g.cover_url} alt={g.name} width={40} height={56} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate group-hover:text-accent transition-colors">{g.name}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {pct && <span className="text-xs font-bold text-emerald-400">-{pct}%</span>}
+                        <span className="text-xs text-muted">Rp {g.price.toLocaleString("id-ID")}</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+              <button onMouseDown={(e) => { e.preventDefault(); setMobileSearchOpen(false); router.push(`/?q=${encodeURIComponent(searchValue.trim())}`); }}
+                className="w-full px-4 py-2.5 text-xs text-accent font-semibold border-t border-border-subtle hover:bg-border-subtle text-center">
+                Lihat semua hasil untuk &ldquo;{searchValue}&rdquo; →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </nav>
   );
 }
