@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 export function SearchBar() {
   const router = useRouter();
@@ -9,8 +9,13 @@ export function SearchBar() {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [value, setValue] = useState(searchParams.get("q") ?? "");
+  const isMounted = useRef(false);
 
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
     const handle = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
       if (value) {
