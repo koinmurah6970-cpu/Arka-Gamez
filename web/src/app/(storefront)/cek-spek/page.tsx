@@ -142,15 +142,15 @@ export default function CekSpekPage() {
 
     if (passCount === 3) {
       verdict = "LANCAR";
-      title = "🟢 LANCAR JAYA!";
+      title = "LANCAR JAYA";
       description = `Spesifikasi PC/laptop Anda sudah sangat mumpuni untuk memainkan game "${selectedGame.name}". Anda bisa memainkannya dengan FPS stabil pada setting grafis Medium hingga High/Ultra.`;
     } else if (passCount === 2) {
       verdict = "CUKUP";
-      title = "🟡 BISA DIMAINKAN (SETTING LOW-MEDIUM)";
+      title = "BISA DIMAINKAN (SETTING LOW-MEDIUM)";
       description = `PC Anda sedikit mepet di beberapa komponen (terutama ${!ramOk ? "RAM" : !cpuOk ? "Processor" : "VGA/GPU"}). Game "${selectedGame.name}" masih bisa dimainkan dengan nyaman di setting grafis Low atau Medium, namun pastikan untuk menutup aplikasi background lain sebelum bermain.`;
     } else {
       verdict = "KURANG";
-      title = "🔴 SPESIFIKASI KURANG COMPATIBLE";
+      title = "SPESIFIKASI KURANG COMPATIBLE";
       description = `Spesifikasi PC Anda berada di bawah batas minimum yang disarankan untuk game "${selectedGame.name}". Game kemungkinan besar akan mengalami lag parah, patah-patah (stuttering), atau tidak bisa terbuka sama sekali. Kami merekomendasikan untuk melakukan upgrade hardware terlebih dahulu.`;
     }
 
@@ -302,7 +302,7 @@ export default function CekSpekPage() {
             disabled={!selectedGame}
             className="w-full bg-accent text-accent-foreground py-3.5 px-4 rounded-xl font-bold hover:opacity-90 disabled:opacity-50 transition text-sm flex items-center justify-center gap-2 mt-4"
           >
-            💻 Cek Kompatibilitas
+            Cek Kompatibilitas
           </button>
         </div>
 
@@ -362,20 +362,23 @@ export default function CekSpekPage() {
               <div className="space-y-2 border-t border-border-subtle pt-4 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-muted font-medium">RAM PC (Min {result.reqRam} GB)</span>
-                  <span className={`font-bold ${result.ramOk ? "text-emerald-400" : "text-red-400"}`}>
-                    {result.ramOk ? "🟢 MEMENUHI" : "🔴 BELUM CUKUP"}
+                  <span className={`inline-flex items-center gap-1.5 font-bold ${result.ramOk ? "text-emerald-400" : "text-red-400"}`}>
+                    <span className={`h-2 w-2 rounded-full ${result.ramOk ? "bg-emerald-400" : "bg-red-400"}`}></span>
+                    {result.ramOk ? "MEMENUHI" : "BELUM CUKUP"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted font-medium">Processor / CPU</span>
-                  <span className={`font-bold ${result.cpuOk ? "text-emerald-400" : "text-red-400"}`}>
-                    {result.cpuOk ? "🟢 MEMENUHI" : "🔴 BELUM CUKUP"}
+                  <span className={`inline-flex items-center gap-1.5 font-bold ${result.cpuOk ? "text-emerald-400" : "text-red-400"}`}>
+                    <span className={`h-2 w-2 rounded-full ${result.cpuOk ? "bg-emerald-400" : "bg-red-400"}`}></span>
+                    {result.cpuOk ? "MEMENUHI" : "BELUM CUKUP"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted font-medium">Graphics Card / GPU</span>
-                  <span className={`font-bold ${result.gpuOk ? "text-emerald-400" : "text-red-400"}`}>
-                    {result.gpuOk ? "🟢 MEMENUHI" : "🔴 BELUM CUKUP"}
+                  <span className={`inline-flex items-center gap-1.5 font-bold ${result.gpuOk ? "text-emerald-400" : "text-red-400"}`}>
+                    <span className={`h-2 w-2 rounded-full ${result.gpuOk ? "bg-emerald-400" : "bg-red-400"}`}></span>
+                    {result.gpuOk ? "MEMENUHI" : "BELUM CUKUP"}
                   </span>
                 </div>
               </div>

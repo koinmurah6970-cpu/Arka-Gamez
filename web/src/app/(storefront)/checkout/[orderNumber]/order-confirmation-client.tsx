@@ -63,7 +63,13 @@ export default function OrderConfirmationClient({
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-xl text-center">
-      <div className="text-5xl mb-4">✅</div>
+      <div className="flex justify-center mb-6">
+        <div className="h-16 w-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      </div>
       <h1 className="text-2xl font-bold text-foreground mb-2">Pesanan Dibuat!</h1>
       <p className="text-sm text-muted mb-6">
         Nomor pesanan kamu: <span className="font-bold text-foreground">{orderNumber}</span>
