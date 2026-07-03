@@ -1,0 +1,128 @@
+================================================================================
+           PRESENTASI CLIENT: DAFTAR FITUR & MENU PLATFORM ARKA GAMEZ
+================================================================================
+
+A. FITUR & MENU SISI PELANGGAN (STOREFRONT / USER-FACING)
+--------------------------------------------------------------------------------
+1. Halaman Beranda (Homepage):
+   - Hero Banner: Menampilkan promosi game unggulan terbaru secara visual.
+   - Jelajahi Koleksi: Area katalog utama dengan tampilan grid yang modern.
+
+2. Pencarian Game Instan (Instant Search):
+   - Kolom pencarian real-time yang memfilter game secara otomatis berdasarkan 
+     nama tanpa perlu memuat ulang halaman (reload).
+
+3. Filter Kategori Spesifikasi (Spec-Based Category):
+   - Mengelompokkan game berdasarkan berat spesifikasi PC (Ringan, Sedang, 
+     Agak Berat, Berat) untuk memastikan game bisa dimainkan di PC pelanggan.
+
+4. Pengurutan Katalog Lanjutan (Advanced Sort):
+   - Fitur mengurutkan katalog berdasarkan: Relevansi, Harga Terendah, Harga 
+     Tertinggi, Diskon Terbesar, Nama A-Z, dan Rilis Terbaru.
+
+5. Halaman Detail Game:
+   - Media Gallery: Galeri screenshot gameplay dan pemutar video trailer resmi.
+   - Steam HLS Player: Player video terintegrasi (hls.js) untuk streaming 
+     trailer (.m3u8) langsung dari server Steam secara lancar.
+   - Dinamis Minimum Specs: Menampilkan hardware CPU, GPU, dan RAM minimum 
+     yang dibutuhkan sesuai kategori spesifikasi game.
+   - Review & Rating: Kolom ulasan bintang dan testimoni pembeli.
+
+6. Tema Gelap & Terang (Dark/Light Mode Toggle):
+   - Tombol pengubah tema warna (gelap/terang) untuk kenyamanan mata pelanggan.
+
+7. Sistem Wishlist Offline-First:
+   - Pelanggan bisa menyimpan daftar game favorit (daftar keinginan) secara 
+     praktis tanpa wajib memiliki akun/login (berbasis LocalStorage).
+
+8. Keranjang Belanja Dinamis (Shopping Cart):
+   - Menampung game yang akan dibeli, lengkap dengan penghitung total harga 
+     dan akumulasi total ukuran file download (dalam GB).
+
+9. Sistem Promo & Diskon Voucher:
+   - Halaman khusus info kode promo aktif dan kolom input voucher diskon pada 
+     saat proses transaksi.
+
+10. Guest Checkout Berbasis WhatsApp:
+    - Transaksi instan tanpa register/login akun. Pembeli cukup mengisi Nama 
+      dan nomor WhatsApp untuk langsung membeli.
+
+11. Notifikasi Invoice WhatsApp Otomatis:
+    - Sistem otomatis mengirimkan pesan detail tagihan (invoice) langsung ke 
+      nomor WhatsApp pembeli setelah berhasil checkout.
+
+12. Menu Cek Status Pesanan (Tracking):
+    - Pelanggan cukup menginput nomor WhatsApp mereka untuk melihat riwayat 
+      pesanan lengkap beserta status pembayaran dan prosesnya.
+
+13. Akses Unduhan Instan (Download Links):
+    - Halaman pesanan akan menampilkan tombol link download resmi (Google Drive, 
+      dll.) secara otomatis begitu status transaksi diubah menjadi lunas.
+
+14. Form Request Game:
+    - Halaman khusus bagi pelanggan untuk merequest game yang belum ada di 
+      katalog agar diunggah oleh admin.
+
+15. Halaman FAQ & Bantuan:
+    - Informasi panduan cara mendownload, menginstal, dan solusi error game.
+
+16. Menu Cek Spesifikasi Komputer (PC Compatibility Checker):
+    - Pelanggan dapat memasukkan kapasitas RAM, tipe CPU, dan kelas GPU mereka, 
+      lalu memilih game dari database katalog untuk menganalisis kecocokan 
+      spesifikasi hardware secara real-time dan interaktif.
+
+
+B. FITUR & MENU SISI PENGELOLA (ADMIN DASHBOARD / PROTECTED AREA)
+--------------------------------------------------------------------------------
+17. Dashboard Overview:
+    - Grafik dan kartu statistik real-time: Total Game, Game Aktif, Game Draft, 
+      Game Butuh Review Cover (QC), Pesanan Pending, dan Revenue Bulan Ini.
+
+18. Manajemen Katalog Game (CRUD):
+    - Pengelolaan penuh daftar game (tambah, edit, hapus, arsip).
+    - Status Filter: Membagi game berdasarkan status Draft, Active, dan Archived.
+
+19. Alat Cropping Cover Interaktif (Interactive Crop Tool):
+    - Fitur memotong dan mencocokkan gambar cover secara visual (zoom/drag) ke 
+      rasio 3:4 (600x800px) lengkap dengan auto-convert ke format WebP hemat kuota.
+
+20. CORS Proxy cover Streamer:
+    - Jalur proxy gambar khusus untuk mem-bypass keamanan browser (CORS) saat 
+      admin memproses gambar cover dari Steam/RAWG secara live.
+
+21. Manajemen Pesanan & Stepper Flow:
+    - Pemrosesan transaksi pelanggan terbagi dalam 4 tahap sistematis: 
+      Pending -> Paid -> Completed -> Cancelled.
+
+22. Notifikasi WhatsApp & Email Dispatcher:
+    - Pengiriman otomatis status pesanan terbaru dan link download ke customer 
+      via WhatsApp (Fonnte API) dan Email (Resend API) dengan sekali klik.
+
+23. Manajemen Kategori & Spesifikasi:
+    - Pengaturan data minimum spesifikasi hardware untuk masing-masing 
+      kategori game.
+
+24. Manajemen Promo & Voucher:
+    - Panel admin untuk membuat, membatasi, dan memantau kode voucher diskon.
+
+25. Manajemen Request Game:
+    - Mengelola daftar permintaan game dari pelanggan (diterima/ditolak/proses).
+
+26. Pengaturan Sistem (Settings):
+    - Konfigurasi WhatsApp API token, Resend Email token, serta domain callback.
+
+
+C. PIPELINE BACKEND & DATA PIPELINE (DI BALIK LAYAR)
+--------------------------------------------------------------------------------
+27. Automatic Cover Fetcher Script:
+    - Pipeline Python otomatis yang mencari, mendownload, dan meng-crop cover 
+      game dari SteamGridDB/RAWG ke format WebP secara massal.
+
+28. Steam Prices Populate Script:
+    - Pipeline Python otomatis untuk menyingkronkan data harga asli game di 
+      Steam ke database lokal sebagai perbandingan harga coret (diskon).
+
+29. Database Supabase Sync:
+    - Penyimpanan relasional terenkripsi berbasis cloud dengan integrasi 
+      Supabase Storage untuk menaruh file aset cover game secara aman.
+================================================================================

@@ -118,7 +118,6 @@ def main():
     total = len(games)
     print(f"  {total} games found\n")
 
-    updates: list[dict] = []
     steam_hit = 0
     no_price = 0
     no_match = 0
@@ -132,32 +131,25 @@ def main():
         appid, price = search_steam(game["name"])
 
         if price:
-            updates.append({"id": game["id"], "original_price": price})
-            print(f"  Rp {price:>12,}")
+            final_price = price
+            print(f"  Rp {price:>12,}", end="", flush=True)
             steam_hit += 1
         else:
-            rp = random.choice(RANDOM_PRICES)
-            updates.append({"id": game["id"], "original_price": rp})
+            final_price = random.choice(RANDOM_PRICES)
             reason = "no match" if appid is None else "free/no price"
-            print(f"  {reason:<15} → random Rp {rp:,}")
+            print(f"  {reason:<15} → random Rp {final_price:,}", end="", flush=True)
             if appid is None:
                 no_match += 1
             else:
                 no_price += 1
 
-        time.sleep(0.3)
+        # Update Supabase immediately so progress is never lost
+        supabase.table("games").update(
+            {"original_price": final_price}
+        ).eq("id", game["id"]).execute()
+        print(" ✓")
 
-    # ── bulk update Supabase ─────────────────────────────────────────────────
-    print(f"\nUpdating {len(updates)} games in Supabase...")
-    BATCH = 50
-    for i in range(0, len(updates), BATCH):
-        batch = updates[i : i + BATCH]
-        for item in batch:
-            supabase.table("games").update(
-                {"original_price": item["original_price"]}
-            ).eq("id", item["id"]).execute()
-        done = min(i + BATCH, len(updates))
-        print(f"  {done}/{len(updates)}")
+        time.sleep(0.3)
 
     print("\n✓ Done!")
     print(f"  Steam prices  : {steam_hit}")

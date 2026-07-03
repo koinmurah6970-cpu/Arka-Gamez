@@ -104,6 +104,9 @@ export function NavbarClient({
             <Link href="/" className="hover:text-accent transition">
               BERANDA
             </Link>
+            <Link href="/cek-spek" className="hover:text-accent transition">
+              CEK SPEK
+            </Link>
             <Link href="/promo" className="hover:text-accent transition">
               PROMO
             </Link>
