@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { applySearchFilter } from "@/lib/search";
 
 type GameSearchHit = {
   id: string;
@@ -77,17 +78,7 @@ export default function CekSpekPage() {
         .select("id, slug, name, cover_url, category:categories(name)")
         .eq("status", "active");
 
-      const q = searchQuery.trim();
-      const lowerQ = q.toLowerCase();
-      if (lowerQ.includes("gta")) {
-        const expanded = q.replace(/gta/gi, "grand theft auto");
-        query = query.or(`name.ilike.%${q}%,name.ilike.%${expanded}%`);
-      } else if (lowerQ.includes("grand theft auto")) {
-        const contracted = q.replace(/grand theft auto/gi, "gta");
-        query = query.or(`name.ilike.%${q}%,name.ilike.%${contracted}%`);
-      } else {
-        query = query.ilike("name", `%${q}%`);
-      }
+      query = applySearchFilter(query, "name", searchQuery);
 
       const { data } = await query
         .order("name", { ascending: true })

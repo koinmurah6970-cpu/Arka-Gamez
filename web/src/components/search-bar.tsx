@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useTransition, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { applySearchFilter } from "@/lib/search";
 
 type GameHit = {
   slug: string;
@@ -40,17 +41,7 @@ export function SearchBar() {
       .select("slug, name, price, original_price, cover_url")
       .eq("status", "active");
 
-    const trimmedQ = q.trim();
-    const lowerQ = trimmedQ.toLowerCase();
-    if (lowerQ.includes("gta")) {
-      const expanded = trimmedQ.replace(/gta/gi, "grand theft auto");
-      query = query.or(`name.ilike.%${trimmedQ}%,name.ilike.%${expanded}%`);
-    } else if (lowerQ.includes("grand theft auto")) {
-      const contracted = trimmedQ.replace(/grand theft auto/gi, "gta");
-      query = query.or(`name.ilike.%${trimmedQ}%,name.ilike.%${contracted}%`);
-    } else {
-      query = query.ilike("name", `%${trimmedQ}%`);
-    }
+    query = applySearchFilter(query, "name", q);
 
     const { data } = await query
       .order("is_new", { ascending: false })

@@ -5,6 +5,7 @@ import { formatPrice } from "@/lib/format";
 import { Pagination } from "@/components/pagination";
 import { publishAllDrafts } from "./actions";
 import type { GameStatus } from "@/lib/supabase/types";
+import { applySearchFilter } from "@/lib/search";
 
 const VALID_STATUSES: GameStatus[] = ["draft", "active", "archived"];
 
@@ -51,16 +52,7 @@ export default async function AdminGamesPage({
     });
 
   if (q) {
-    const lowerQ = q.toLowerCase();
-    if (lowerQ.includes("gta")) {
-      const expanded = q.replace(/gta/gi, "grand theft auto");
-      query = query.or(`name.ilike.%${q}%,name.ilike.%${expanded}%`);
-    } else if (lowerQ.includes("grand theft auto")) {
-      const contracted = q.replace(/grand theft auto/gi, "gta");
-      query = query.or(`name.ilike.%${q}%,name.ilike.%${contracted}%`);
-    } else {
-      query = query.ilike("name", `%${q}%`);
-    }
+    query = applySearchFilter(query, "name", q);
   }
   if (params.status && VALID_STATUSES.includes(params.status as GameStatus)) {
     query = query.eq("status", params.status as GameStatus);

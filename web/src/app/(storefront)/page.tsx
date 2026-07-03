@@ -11,6 +11,7 @@ import { SortSelect } from "@/components/sort-select";
 import { SortPendingProvider } from "@/components/sort-pending-context";
 import { CatalogGridFade } from "@/components/catalog-grid-fade";
 import { PAGE_SIZE } from "@/lib/constants";
+import { applySearchFilter } from "@/lib/search";
 
 // Categories barely ever change -- cache them instead of round-tripping to
 // Supabase on every single catalog request. Uses the plain (cookie-less)
@@ -55,16 +56,7 @@ export default async function HomePage({
     .eq("status", "active");
 
   if (q) {
-    const lowerQ = q.toLowerCase();
-    if (lowerQ.includes("gta")) {
-      const expanded = q.replace(/gta/gi, "grand theft auto");
-      query = query.or(`name.ilike.%${q}%,name.ilike.%${expanded}%`);
-    } else if (lowerQ.includes("grand theft auto")) {
-      const contracted = q.replace(/grand theft auto/gi, "gta");
-      query = query.or(`name.ilike.%${q}%,name.ilike.%${contracted}%`);
-    } else {
-      query = query.ilike("name", `%${q}%`);
-    }
+    query = applySearchFilter(query, "name", q);
   }
   if (kategori) {
     const cat = categories.find((c) => c.name === kategori);
