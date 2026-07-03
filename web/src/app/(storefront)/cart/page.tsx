@@ -10,7 +10,12 @@ export default function CartPage() {
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-2xl font-bold text-foreground mb-6">🛒 Keranjang Anda</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+        Keranjang Anda
+      </h1>
 
       {items.length === 0 ? (
         <div className="text-center py-20 text-muted text-sm">
