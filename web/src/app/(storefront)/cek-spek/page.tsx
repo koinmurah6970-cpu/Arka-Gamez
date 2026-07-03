@@ -11,9 +11,10 @@ type GameSearchHit = {
   slug: string;
   name: string;
   cover_url: string | null;
-  category: {
-    name: string;
-  } | null;
+  min_ram_gb: number | null;
+  min_cpu_tier: number | null;
+  min_gpu_tier: number | null;
+  category: { name: string } | null;
 };
 
 const supabase = createClient();
@@ -42,6 +43,15 @@ const GPU_OPTIONS = [
   { label: "High-End Gaming (RTX 3060/4060 ke atas, RX 6700 ke atas)", value: 4 },
 ];
 
+// Fallback requirements from category when per-game data is unavailable
+function categoryRequirements(catName: string): { reqRam: number; reqCpuTier: number; reqGpuTier: number; reqSpecsText: string } {
+  const n = catName.toLowerCase();
+  if (n === "ringan")      return { reqRam: 4,  reqCpuTier: 1, reqGpuTier: 1, reqSpecsText: "RAM 4 GB, CPU Dual-Core, Intel HD Graphics" };
+  if (n === "agak berat")  return { reqRam: 8,  reqCpuTier: 3, reqGpuTier: 3, reqSpecsText: "RAM 8 GB, Core i5/i7 modern, GTX 1060 / RX 580" };
+  if (n === "berat")       return { reqRam: 16, reqCpuTier: 4, reqGpuTier: 4, reqSpecsText: "RAM 16 GB, Core i7 modern / Ryzen 5, RTX 2060 / RTX 3060" };
+  /* sedang default */     return { reqRam: 8,  reqCpuTier: 2, reqGpuTier: 2, reqSpecsText: "RAM 8 GB, Core i3/i5 generasi lama, GTX 750 Ti / GTX 1050 Ti" };
+}
+
 export default function CekSpekPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hits, setHits] = useState<GameSearchHit[]>([]);
@@ -49,12 +59,10 @@ export default function CekSpekPage() {
   const [dropOpen, setDropOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Specs state
   const [userRam, setUserRam] = useState<number>(8);
   const [userCpu, setUserCpu] = useState<number>(2);
   const [userGpu, setUserGpu] = useState<number>(2);
 
-  // Result state
   const [result, setResult] = useState<{
     verdict: "LANCAR" | "CUKUP" | "KURANG";
     title: string;
@@ -64,32 +72,24 @@ export default function CekSpekPage() {
     gpuOk: boolean;
     reqRam: number;
     reqSpecsText: string;
+    hasRealData: boolean;
   } | null>(null);
 
-  // Fetch games for search autocomplete
   useEffect(() => {
     async function searchGames() {
-      if (!searchQuery.trim()) {
-        setHits([]);
-        return;
-      }
+      if (!searchQuery.trim()) { setHits([]); return; }
       let query = supabase
         .from("games")
-        .select("id, slug, name, cover_url, category:categories(name)")
+        .select("id, slug, name, cover_url, min_ram_gb, min_cpu_tier, min_gpu_tier, category:categories(name)")
         .eq("status", "active");
-
       query = applySearchFilter(query, "name", searchQuery);
-
-      const { data } = await query
-        .order("name", { ascending: true })
-        .limit(5);
+      const { data } = await query.order("name", { ascending: true }).limit(5);
       setHits((data ?? []) as unknown as GameSearchHit[]);
     }
     const handle = setTimeout(searchGames, 200);
     return () => clearTimeout(handle);
   }, [searchQuery]);
 
-  // Click outside to close autocomplete dropdown
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -103,71 +103,52 @@ export default function CekSpekPage() {
   const calculateCompatibility = () => {
     if (!selectedGame) return;
 
-    const categoryName = selectedGame.category?.name?.toLowerCase() ?? "sedang";
-    
-    // Define category requirements
-    let reqRam = 8;
-    let reqCpuTier = 2; // Mid-range
-    let reqGpuTier = 2; // Entry
-    let reqSpecsText = "";
+    const hasRealData = !!(selectedGame.min_ram_gb && selectedGame.min_cpu_tier && selectedGame.min_gpu_tier);
 
-    if (categoryName === "ringan") {
-      reqRam = 4;
-      reqCpuTier = 1;
-      reqGpuTier = 1;
-      reqSpecsText = "RAM 4 GB, CPU Dual-Core, Intel HD Graphics";
-    } else if (categoryName === "sedang") {
-      reqRam = 8;
-      reqCpuTier = 2;
-      reqGpuTier = 2;
-      reqSpecsText = "RAM 8 GB, Core i3/i5 generasi lama, GTX 750 Ti / GTX 1050 Ti";
-    } else if (categoryName === "agak berat") {
-      reqRam = 8;
-      reqCpuTier = 3;
-      reqGpuTier = 3;
-      reqSpecsText = "RAM 8 GB, Core i5/i7 modern, GTX 1060 / RX 580";
-    } else if (categoryName === "berat") {
-      reqRam = 16;
-      reqCpuTier = 4;
-      reqGpuTier = 4;
-      reqSpecsText = "RAM 16 GB, Core i7 modern / Ryzen 5, RTX 2060 / RTX 3060";
+    let reqRam: number;
+    let reqCpuTier: number;
+    let reqGpuTier: number;
+    let reqSpecsText: string;
+
+    if (hasRealData) {
+      reqRam      = selectedGame.min_ram_gb!;
+      reqCpuTier  = selectedGame.min_cpu_tier!;
+      reqGpuTier  = selectedGame.min_gpu_tier!;
+      reqSpecsText = `RAM ${reqRam} GB minimum (data resmi Steam)`;
+    } else {
+      const fb = categoryRequirements(selectedGame.category?.name ?? "sedang");
+      reqRam      = fb.reqRam;
+      reqCpuTier  = fb.reqCpuTier;
+      reqGpuTier  = fb.reqGpuTier;
+      reqSpecsText = fb.reqSpecsText;
     }
 
     const ramOk = userRam >= reqRam;
     const cpuOk = userCpu >= reqCpuTier;
     const gpuOk = userGpu >= reqGpuTier;
 
-    // Determine verdict
-    let verdict: "LANCAR" | "CUKUP" | "KURANG" = "LANCAR";
-    let title = "";
-    let description = "";
-
     const passCount = (ramOk ? 1 : 0) + (cpuOk ? 1 : 0) + (gpuOk ? 1 : 0);
 
+    let verdict: "LANCAR" | "CUKUP" | "KURANG";
+    let title: string;
+    let description: string;
+
     if (passCount === 3) {
-      verdict = "LANCAR";
-      title = "LANCAR JAYA";
-      description = `Spesifikasi PC/laptop Anda sudah sangat mumpuni untuk memainkan game "${selectedGame.name}". Anda bisa memainkannya dengan FPS stabil pada setting grafis Medium hingga High/Ultra.`;
+      verdict     = "LANCAR";
+      title       = "LANCAR JAYA";
+      description = `Spesifikasi PC/laptop Anda sudah mumpuni untuk memainkan "${selectedGame.name}". Bisa dimainkan dengan FPS stabil di setting grafis Medium hingga High/Ultra.`;
     } else if (passCount === 2) {
-      verdict = "CUKUP";
-      title = "BISA DIMAINKAN (SETTING LOW-MEDIUM)";
-      description = `PC Anda sedikit mepet di beberapa komponen (terutama ${!ramOk ? "RAM" : !cpuOk ? "Processor" : "VGA/GPU"}). Game "${selectedGame.name}" masih bisa dimainkan dengan nyaman di setting grafis Low atau Medium, namun pastikan untuk menutup aplikasi background lain sebelum bermain.`;
+      verdict     = "CUKUP";
+      title       = "BISA DIMAINKAN (SETTING LOW-MEDIUM)";
+      const weak  = !ramOk ? "RAM" : !cpuOk ? "Processor" : "VGA/GPU";
+      description = `PC Anda sedikit mepet di ${weak}. "${selectedGame.name}" masih bisa dimainkan di setting Low-Medium, tapi tutup aplikasi background sebelum bermain.`;
     } else {
-      verdict = "KURANG";
-      title = "SPESIFIKASI KURANG COMPATIBLE";
-      description = `Spesifikasi PC Anda berada di bawah batas minimum yang disarankan untuk game "${selectedGame.name}". Game kemungkinan besar akan mengalami lag parah, patah-patah (stuttering), atau tidak bisa terbuka sama sekali. Kami merekomendasikan untuk melakukan upgrade hardware terlebih dahulu.`;
+      verdict     = "KURANG";
+      title       = "SPESIFIKASI KURANG COMPATIBLE";
+      description = `Spesifikasi PC Anda di bawah minimum untuk "${selectedGame.name}". Kemungkinan besar akan lag parah atau tidak bisa dibuka. Disarankan upgrade hardware terlebih dahulu.`;
     }
 
-    setResult({
-      verdict,
-      title,
-      description,
-      ramOk,
-      cpuOk,
-      gpuOk,
-      reqRam,
-      reqSpecsText,
-    });
+    setResult({ verdict, title, description, ramOk, cpuOk, gpuOk, reqRam, reqSpecsText, hasRealData });
   };
 
   return (
@@ -210,27 +191,24 @@ export default function CekSpekPage() {
                 {hits.map((g) => (
                   <button
                     key={g.id}
-                    onClick={() => {
-                      setSelectedGame(g);
-                      setSearchQuery("");
-                      setDropOpen(false);
-                    }}
+                    onClick={() => { setSelectedGame(g); setSearchQuery(""); setDropOpen(false); }}
                     className="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-border-subtle transition-colors border-b border-border-subtle/30 last:border-0"
                   >
                     <div className="w-8 h-11 rounded bg-border-subtle overflow-hidden flex-none">
                       {g.cover_url && (
-                        <Image
-                          src={g.cover_url}
-                          alt={g.name}
-                          width={32}
-                          height={44}
-                          className="w-full h-full object-cover"
-                        />
+                        <Image src={g.cover_url} alt={g.name} width={32} height={44} className="w-full h-full object-cover" />
                       )}
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-foreground truncate">{g.name}</p>
-                      <p className="text-xs text-muted">Kategori: {g.category?.name ?? "-"}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-muted">Kategori: {g.category?.name ?? "-"}</p>
+                        {g.min_ram_gb && (
+                          <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                            Data Resmi
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </button>
                 ))}
@@ -245,16 +223,11 @@ export default function CekSpekPage() {
             </label>
             <select
               value={userRam}
-              onChange={(e) => {
-                setUserRam(Number(e.target.value));
-                setResult(null);
-              }}
+              onChange={(e) => { setUserRam(Number(e.target.value)); setResult(null); }}
               className="w-full bg-border-subtle border border-transparent rounded-xl p-3.5 text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition cursor-pointer appearance-none"
             >
               {RAM_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
@@ -266,16 +239,11 @@ export default function CekSpekPage() {
             </label>
             <select
               value={userCpu}
-              onChange={(e) => {
-                setUserCpu(Number(e.target.value));
-                setResult(null);
-              }}
+              onChange={(e) => { setUserCpu(Number(e.target.value)); setResult(null); }}
               className="w-full bg-border-subtle border border-transparent rounded-xl p-3.5 text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition cursor-pointer appearance-none"
             >
               {CPU_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
@@ -287,16 +255,11 @@ export default function CekSpekPage() {
             </label>
             <select
               value={userGpu}
-              onChange={(e) => {
-                setUserGpu(Number(e.target.value));
-                setResult(null);
-              }}
+              onChange={(e) => { setUserGpu(Number(e.target.value)); setResult(null); }}
               className="w-full bg-border-subtle border border-transparent rounded-xl p-3.5 text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition cursor-pointer appearance-none"
             >
               {GPU_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
@@ -314,86 +277,77 @@ export default function CekSpekPage() {
         <div className="flex flex-col justify-center border-t md:border-t-0 md:border-l border-border-subtle pt-6 md:pt-0 md:pl-8">
           {!result ? (
             <div className="text-center py-12 text-muted">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-14 w-14 mx-auto text-muted/30 mb-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-14 w-14 mx-auto text-muted/30 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               <p className="text-sm font-semibold">Hasil Analisis Spesifikasi</p>
               <p className="text-xs text-muted/70 mt-1 max-w-[280px] mx-auto">
-                Silakan pilih game terlebih dahulu dan klik tombol "Cek Kompatibilitas" untuk menganalisis PC Anda.
+                Pilih game dan klik &ldquo;Cek Kompatibilitas&rdquo; untuk menganalisis PC Anda.
               </p>
             </div>
           ) : (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-5 animate-fade-in">
               <div className="text-center md:text-left">
-                <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Hasil Analisis Game</p>
-                <h3 className="text-md font-extrabold text-foreground mt-1 truncate">
-                  {selectedGame?.name}
-                </h3>
-                <span className="inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full bg-border-subtle text-foreground">
-                  Spesifikasi Minimum Game: {selectedGame?.category?.name}
-                </span>
+                <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Hasil Analisis</p>
+                <h3 className="text-md font-extrabold text-foreground mt-1 truncate">{selectedGame?.name}</h3>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className="inline-block text-xs font-bold px-3 py-1 rounded-full bg-border-subtle text-foreground">
+                    Kategori: {selectedGame?.category?.name ?? "-"}
+                  </span>
+                  {result.hasRealData ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      Data Resmi Steam
+                    </span>
+                  ) : (
+                    <span className="inline-block text-xs font-bold px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                      Estimasi Kategori
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Verdict Banner */}
-              <div
-                className={`p-4 rounded-2xl border text-center ${
-                  result.verdict === "LANCAR"
-                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                    : result.verdict === "CUKUP"
-                    ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
-                    : "bg-red-500/10 border-red-500/20 text-red-400"
-                }`}
-              >
+              <div className={`p-4 rounded-2xl border text-center ${
+                result.verdict === "LANCAR"
+                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                  : result.verdict === "CUKUP"
+                  ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                  : "bg-red-500/10 border-red-500/20 text-red-400"
+              }`}>
                 <span className="text-sm font-black tracking-tight">{result.title}</span>
               </div>
 
-              <p className="text-xs text-muted leading-relaxed text-justify">
-                {result.description}
-              </p>
+              <p className="text-xs text-muted leading-relaxed">{result.description}</p>
 
               {/* Specs checklist */}
               <div className="space-y-2 border-t border-border-subtle pt-4 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted font-medium">RAM PC (Min {result.reqRam} GB)</span>
-                  <span className={`inline-flex items-center gap-1.5 font-bold ${result.ramOk ? "text-emerald-400" : "text-red-400"}`}>
-                    <span className={`h-2 w-2 rounded-full ${result.ramOk ? "bg-emerald-400" : "bg-red-400"}`}></span>
-                    {result.ramOk ? "MEMENUHI" : "BELUM CUKUP"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted font-medium">Processor / CPU</span>
-                  <span className={`inline-flex items-center gap-1.5 font-bold ${result.cpuOk ? "text-emerald-400" : "text-red-400"}`}>
-                    <span className={`h-2 w-2 rounded-full ${result.cpuOk ? "bg-emerald-400" : "bg-red-400"}`}></span>
-                    {result.cpuOk ? "MEMENUHI" : "BELUM CUKUP"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted font-medium">Graphics Card / GPU</span>
-                  <span className={`inline-flex items-center gap-1.5 font-bold ${result.gpuOk ? "text-emerald-400" : "text-red-400"}`}>
-                    <span className={`h-2 w-2 rounded-full ${result.gpuOk ? "bg-emerald-400" : "bg-red-400"}`}></span>
-                    {result.gpuOk ? "MEMENUHI" : "BELUM CUKUP"}
-                  </span>
-                </div>
+                <p className="text-[10px] text-muted font-semibold uppercase tracking-wider mb-2">
+                  Minimum: {result.reqSpecsText}
+                </p>
+                {[
+                  { label: `RAM (Min ${result.reqRam} GB)`, ok: result.ramOk },
+                  { label: "Processor / CPU",               ok: result.cpuOk },
+                  { label: "Graphics Card / GPU",            ok: result.gpuOk },
+                ].map(({ label, ok }) => (
+                  <div key={label} className="flex items-center justify-between">
+                    <span className="text-muted font-medium">{label}</span>
+                    <span className={`inline-flex items-center gap-1.5 font-bold ${ok ? "text-emerald-400" : "text-red-400"}`}>
+                      <span className={`h-2 w-2 rounded-full ${ok ? "bg-emerald-400" : "bg-red-400"}`} />
+                      {ok ? "MEMENUHI" : "BELUM CUKUP"}
+                    </span>
+                  </div>
+                ))}
               </div>
 
-              {/* Game details CTA */}
               <div className="border-t border-border-subtle pt-4 flex gap-3">
                 <Link
                   href={`/game/${selectedGame?.slug}`}
                   className="flex-1 text-center bg-accent text-accent-foreground py-2.5 px-4 rounded-xl font-bold hover:opacity-90 transition text-xs"
                 >
-                  Detail Game ➔
+                  Detail Game →
                 </Link>
                 <button
                   onClick={() => setResult(null)}
