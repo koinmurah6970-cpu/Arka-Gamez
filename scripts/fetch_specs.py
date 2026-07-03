@@ -171,7 +171,7 @@ def patch_game(slug: str, ram: int | None, cpu: int | None, gpu: int | None):
         headers=sb_headers,
         params={"slug": f"eq.{slug}"},
         json=payload,
-        timeout=10,
+        timeout=30,
     )
 
 
@@ -238,7 +238,10 @@ def main():
 
     for i, game in enumerate(games, 1):
         print(f"[{i}/{total}] {game['name']}")
-        status = process(game)
+        try:
+            status = process(game)
+        except Exception as e:
+            status = f"error: {e}"
         if status == "ok":
             ok += 1
         else:
