@@ -122,6 +122,21 @@ export default async function GameDetailPage({
       ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
       : 0;
 
+  const CPU_LABELS: Record<number, string> = {
+    1: "Low-End (Celeron / Dual-Core)",
+    2: "Entry Gaming (Core i3 / Ryzen 3)",
+    3: "Mid-Range (Core i5 / Ryzen 5)",
+    4: "High-End (Core i7+ / Ryzen 7+)",
+  };
+  const GPU_LABELS: Record<number, string> = {
+    1: "Integrated (Intel HD / UHD)",
+    2: "Entry Gaming (GTX 1050 / RX 560)",
+    3: "Mid-Range (GTX 1060 / RX 580)",
+    4: "High-End (RTX 3060+ / RX 6700+)",
+  };
+
+  const hasSpecs = game.min_ram_gb || game.min_cpu_tier || game.min_gpu_tier;
+
   const reviewRows = reviews.map((r) => ({
     id: r.id,
     user_id: r.user_id,
@@ -195,12 +210,33 @@ export default async function GameDetailPage({
           </div>
 
           <div className="px-1">
-            <h2 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">
-              About This Game
+            <h2 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">
+              Minimum Spesifikasi
             </h2>
-            <p className="text-xs text-muted leading-relaxed text-justify">
-              {game.description || `Mainkan keseruan game ${game.name}.`}
-            </p>
+            {hasSpecs ? (
+              <div className="space-y-2">
+                {game.min_ram_gb != null && (
+                  <div className="flex items-center justify-between py-1.5 border-b border-border-subtle last:border-0">
+                    <span className="text-xs text-muted">RAM</span>
+                    <span className="text-xs font-semibold text-foreground">{game.min_ram_gb} GB</span>
+                  </div>
+                )}
+                {game.min_cpu_tier != null && (
+                  <div className="flex items-center justify-between py-1.5 border-b border-border-subtle last:border-0">
+                    <span className="text-xs text-muted">CPU</span>
+                    <span className="text-xs font-semibold text-foreground text-right max-w-[60%]">{CPU_LABELS[game.min_cpu_tier]}</span>
+                  </div>
+                )}
+                {game.min_gpu_tier != null && (
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-xs text-muted">GPU</span>
+                    <span className="text-xs font-semibold text-foreground text-right max-w-[60%]">{GPU_LABELS[game.min_gpu_tier]}</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-muted">Data spesifikasi belum tersedia.</p>
+            )}
           </div>
         </div>
       </div>
