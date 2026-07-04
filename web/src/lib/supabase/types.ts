@@ -41,6 +41,9 @@ export type Game = {
   is_featured: boolean;
   is_new: boolean;
   view_count: number;
+  min_ram_gb: number | null;
+  min_cpu_tier: number | null;
+  min_gpu_tier: number | null;
   created_at: string;
   updated_at: string;
   category?: Category | null;
