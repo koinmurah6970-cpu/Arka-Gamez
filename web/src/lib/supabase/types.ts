@@ -162,6 +162,15 @@ export type Database = {
           },
         ];
       };
+      cart_items: {
+        Row: { id: string; user_id: string; game_id: string; created_at: string };
+        Insert: { user_id: string; game_id: string; id?: string; created_at?: string };
+        Update: Partial<{ user_id: string; game_id: string }>;
+        Relationships: [
+          { foreignKeyName: "cart_items_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] },
+          { foreignKeyName: "cart_items_game_id_fkey"; columns: ["game_id"]; isOneToOne: false; referencedRelation: "games"; referencedColumns: ["id"] },
+        ];
+      };
       game_media: {
         Row: GameMedia;
         Insert: Partial<GameMedia>;
