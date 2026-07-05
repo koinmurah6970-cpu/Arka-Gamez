@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 const supabase = createClient();
 
@@ -24,22 +25,19 @@ const WishlistContext = createContext<WishlistCtx>({
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [ids, setIds] = useState<Set<string>>(new Set());
+  const [user, setUser] = useState<User | null>(null);
   const idsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     idsRef.current = ids;
   }, [ids]);
 
-  async function load() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) { setIds(new Set()); return; }
+  async function loadWishlist(userId: string) {
     try {
       const { data } = await supabase
         .from("wishlists")
         .select("game_id")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
       setIds(new Set((data ?? []).map((r: { game_id: string }) => r.game_id)));
     } catch {
       // table may not exist yet
@@ -47,18 +45,25 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    load();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      load();
+    // onAuthStateChange dengan INITIAL_SESSION membaca dari localStorage (no network)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "INITIAL_SESSION") {
+        if (session?.user) {
+          setUser(session.user);
+          loadWishlist(session.user.id);
+        }
+      } else if (event === "SIGNED_IN" && session?.user) {
+        setUser(session.user);
+        loadWishlist(session.user.id);
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+        setIds(new Set());
+      }
     });
     return () => subscription.unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggle = useCallback(async (gameId: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
     if (!user) {
       window.location.href = "/login";
       return;
@@ -75,15 +80,9 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
     try {
       if (isIn) {
-        await supabase
-          .from("wishlists")
-          .delete()
-          .eq("game_id", gameId)
-          .eq("user_id", user.id);
+        await supabase.from("wishlists").delete().eq("game_id", gameId).eq("user_id", user.id);
       } else {
-        await supabase
-          .from("wishlists")
-          .insert({ game_id: gameId, user_id: user.id });
+        await supabase.from("wishlists").insert({ game_id: gameId, user_id: user.id });
       }
     } catch {
       // Revert on error
@@ -93,7 +92,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         return next;
       });
     }
-  }, []);
+  }, [user]);
 
   return (
     <WishlistContext.Provider value={{ ids, toggle }}>
