@@ -107,8 +107,8 @@ export default async function HomePage({
         <CatalogGridFade>
           {games && games.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mt-4">
-              {games.map((game) => (
-                <ProductCard key={game.id} game={game} />
+              {games.map((game, i) => (
+                <ProductCard key={game.id} game={game} priority={i < 5} />
               ))}
             </div>
           ) : (

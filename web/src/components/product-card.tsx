@@ -22,7 +22,7 @@ const CATEGORY_STYLE: Record<string, string> = {
   Ringan: "bg-green-500/15 text-green-500",
 };
 
-export function ProductCard({ game }: { game: GameCardData }) {
+export function ProductCard({ game, priority = false }: { game: GameCardData; priority?: boolean }) {
   const router = useRouter();
   const { addItem, items } = useCart();
   const inCart = items.some((i) => i.gameId === game.id);
@@ -63,13 +63,13 @@ export function ProductCard({ game }: { game: GameCardData }) {
         <WishlistButton gameId={game.id} variant="compact" />
         {game.cover_url ? (
           <>
-            {/* Blurred background layer — fills dead space for non-3:4 covers */}
+            {/* Blurred background layer — same sizes as foreground so browser cache hits */}
             <Image
               src={game.cover_url}
               alt=""
               fill
-              unoptimized
               aria-hidden="true"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
               className="object-cover scale-110 blur-lg opacity-60"
             />
             <div className="absolute inset-0 bg-black/20" />
@@ -78,7 +78,7 @@ export function ProductCard({ game }: { game: GameCardData }) {
               src={game.cover_url}
               alt={game.name}
               fill
-              unoptimized
+              priority={priority}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
               className="object-contain relative z-[2]"
             />
