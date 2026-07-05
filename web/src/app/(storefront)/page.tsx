@@ -70,7 +70,7 @@ export default async function HomePage({
   const [{ data: games, count }, { data: nextCovers }] = await Promise.all([
     buildBase(GAME_CARD_FIELDS, true).range(from, to),
     // Prefetch next page — same filters & sort, only cover_url needed
-    buildBase("cover_url").not("cover_url", "is", null).range(from + PAGE_SIZE, to + PAGE_SIZE),
+    buildBase("cover_url").not("cover_url", "is", null).range(from + PAGE_SIZE, to + PAGE_SIZE) as unknown as Promise<{ data: { cover_url: string | null }[] | null }>,
   ]);
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
