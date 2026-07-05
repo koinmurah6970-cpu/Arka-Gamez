@@ -50,27 +50,50 @@ export default async function HomePage({
   // longer exists.
   const categories = await getCategories();
 
-  const catId = kategori ? (categories.find((c) => c.name === kategori)?.id ?? null) : null;
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
-  function buildBase(select: string, withCount = false) {
-    let q2 = supabase.from("games").select(select, withCount ? { count: "exact" } : undefined).eq("status", "active");
-    if (q) q2 = applySearchFilter(q2, "name", q);
-    if (catId) q2 = q2.eq("category_id", catId);
-    if (sort === "harga-asc")   q2 = q2.order("price", { ascending: true });
-    else if (sort === "harga-desc") q2 = q2.order("price", { ascending: false });
-    else if (sort === "diskon") q2 = q2.order("original_price", { ascending: false }).order("price", { ascending: true });
-    else if (sort === "nama-az") q2 = q2.order("name", { ascending: true });
-    else if (sort === "terbaru") q2 = q2.order("created_at", { ascending: false });
-    else q2 = q2.order("is_new", { ascending: false }).order("created_at", { ascending: false });
-    return q2;
+  let query = supabase
+    .from("games")
+    .select(GAME_CARD_FIELDS, { count: "exact" })
+    .eq("status", "active");
+
+  if (q) query = applySearchFilter(query, "name", q);
+  if (kategori) {
+    const cat = categories.find((c) => c.name === kategori);
+    if (cat) query = query.eq("category_id", cat.id);
   }
 
+  if (sort === "harga-asc")   query = query.order("price", { ascending: true });
+  else if (sort === "harga-desc") query = query.order("price", { ascending: false });
+  else if (sort === "diskon") query = query.order("original_price", { ascending: false }).order("price", { ascending: true });
+  else if (sort === "nama-az") query = query.order("name", { ascending: true });
+  else if (sort === "terbaru") query = query.order("created_at", { ascending: false });
+  else query = query.order("is_new", { ascending: false }).order("created_at", { ascending: false });
+
+  // Prefetch query — same filters, next page, cover_url only
+  let prefetchQuery = supabase
+    .from("games")
+    .select("cover_url")
+    .eq("status", "active")
+    .not("cover_url", "is", null);
+
+  if (q) prefetchQuery = applySearchFilter(prefetchQuery, "name", q);
+  if (kategori) {
+    const cat = categories.find((c) => c.name === kategori);
+    if (cat) prefetchQuery = prefetchQuery.eq("category_id", cat.id);
+  }
+
+  if (sort === "harga-asc")   prefetchQuery = prefetchQuery.order("price", { ascending: true });
+  else if (sort === "harga-desc") prefetchQuery = prefetchQuery.order("price", { ascending: false });
+  else if (sort === "diskon") prefetchQuery = prefetchQuery.order("original_price", { ascending: false }).order("price", { ascending: true });
+  else if (sort === "nama-az") prefetchQuery = prefetchQuery.order("name", { ascending: true });
+  else if (sort === "terbaru") prefetchQuery = prefetchQuery.order("created_at", { ascending: false });
+  else prefetchQuery = prefetchQuery.order("is_new", { ascending: false }).order("created_at", { ascending: false });
+
   const [{ data: games, count }, { data: nextCovers }] = await Promise.all([
-    buildBase(GAME_CARD_FIELDS, true).range(from, to),
-    // Prefetch next page — same filters & sort, only cover_url needed
-    buildBase("cover_url").not("cover_url", "is", null).range(from + PAGE_SIZE, to + PAGE_SIZE) as unknown as Promise<{ data: { cover_url: string | null }[] | null }>,
+    query.range(from, to),
+    prefetchQuery.range(from + PAGE_SIZE, to + PAGE_SIZE),
   ]);
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
