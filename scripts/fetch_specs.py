@@ -102,6 +102,15 @@ def clean_name(name: str) -> str:
     return re.sub(r"[™®©]", "", name).strip()
 
 
+def name_similarity(a: str, b: str) -> float:
+    """Simple word-overlap similarity ratio."""
+    wa = set(re.sub(r"[^a-z0-9]", " ", a.lower()).split())
+    wb = set(re.sub(r"[^a-z0-9]", " ", b.lower()).split())
+    if not wa or not wb:
+        return 0.0
+    return len(wa & wb) / max(len(wa), len(wb))
+
+
 def pcgw_search(name: str) -> str | None:
     for attempt in range(3):
         try:
@@ -114,7 +123,37 @@ def pcgw_search(name: str) -> str | None:
                 time.sleep(2 ** attempt)
                 continue
             results = r.json().get("query", {}).get("search", [])
-            return results[0]["title"] if results else None
+            if not results:
+                return None
+            title = results[0]["title"]
+            # Reject poor matches (e.g. "Dying Light" → "Dying Light 2")
+            if name_similarity(clean_name(name), title) < 0.5:
+                return None
+            return title
+        except Exception:
+            time.sleep(2 ** attempt)
+    return None
+
+
+def steam_search_appid(name: str) -> str | None:
+    """Search Steam Store directly by game name — fallback when PCGW fails."""
+    for attempt in range(2):
+        try:
+            r = session.get(
+                "https://store.steampowered.com/api/storesearch/",
+                params={"term": clean_name(name), "l": "english", "cc": "us"},
+                timeout=10,
+            )
+            if not r.text.strip():
+                return None
+            items = r.json().get("items", [])
+            if not items:
+                return None
+            # Pick best name match
+            best = max(items, key=lambda x: name_similarity(clean_name(name), x.get("name", "")))
+            if name_similarity(clean_name(name), best.get("name", "")) < 0.5:
+                return None
+            return str(best["id"])
         except Exception:
             time.sleep(2 ** attempt)
     return None
@@ -196,11 +235,19 @@ def process(game: dict, verbose: bool = True) -> str:
     name = game["name"]
     slug = game["slug"]
 
-    page = pcgw_search(name)
-    if not page:
-        return "pcgw-not-found"
+    app_id = None
 
-    app_id = pcgw_steam_id(page)
+    # Path A: PCGamingWiki → Steam AppID
+    page = pcgw_search(name)
+    if page:
+        app_id = pcgw_steam_id(page)
+
+    # Path B: Steam Store search directly (fallback)
+    if not app_id:
+        app_id = steam_search_appid(name)
+        if app_id and verbose:
+            print(f"    (via Steam search fallback)")
+
     if not app_id:
         return "no-steam-id"
 
