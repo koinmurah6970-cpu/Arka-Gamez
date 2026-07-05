@@ -85,33 +85,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     clearLocalCart();
   }, [supabase]);
 
-  // Initial hydration
+  // Hydration: baca localStorage dulu (instant), lalu sync Supabase di background
   useEffect(() => {
-    let mounted = true;
-    async function init() {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!mounted) return;
+    // Render instant dari localStorage
+    setItems(readLocalCart());
+    setHydrated(true);
+  }, []);
 
-      if (currentUser) {
-        await migrateLocalCart(currentUser.id);
-        const cartItems = await fetchSupabaseCart(currentUser.id);
-        if (mounted) { setUser(currentUser); setItems(cartItems); }
-      } else {
-        if (mounted) setItems(readLocalCart());
-      }
-      if (mounted) setHydrated(true);
-    }
-    init();
-    return () => { mounted = false; };
-  }, [fetchSupabaseCart, migrateLocalCart, supabase]);
-
-  // Auth state listener
+  // Auth listener — INITIAL_SESSION baca dari localStorage (no network), SIGNED_IN/OUT react ke perubahan
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
+      if (event === "INITIAL_SESSION") {
+        if (session?.user) {
+          setUser(session.user);
+          // Sync cart dari Supabase di background, tidak block render
+          migrateLocalCart(session.user.id).then(() =>
+            fetchSupabaseCart(session.user.id).then(setItems)
+          );
+        }
+      } else if (event === "SIGNED_IN" && session?.user) {
+        setUser(session.user);
         await migrateLocalCart(session.user.id);
         const cartItems = await fetchSupabaseCart(session.user.id);
-        setUser(session.user);
         setItems(cartItems);
       } else if (event === "SIGNED_OUT") {
         setUser(null);
