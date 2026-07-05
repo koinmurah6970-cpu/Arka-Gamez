@@ -50,30 +50,28 @@ export default async function HomePage({
   // longer exists.
   const categories = await getCategories();
 
-  let query = supabase
-    .from("games")
-    .select(GAME_CARD_FIELDS, { count: "exact" })
-    .eq("status", "active");
-
-  if (q) {
-    query = applySearchFilter(query, "name", q);
-  }
-  if (kategori) {
-    const cat = categories.find((c) => c.name === kategori);
-    if (cat) query = query.eq("category_id", cat.id);
-  }
-
+  const catId = kategori ? (categories.find((c) => c.name === kategori)?.id ?? null) : null;
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
-  if (sort === "harga-asc")  query = query.order("price", { ascending: true });
-  else if (sort === "harga-desc") query = query.order("price", { ascending: false });
-  else if (sort === "diskon") query = query.order("original_price", { ascending: false }).order("price", { ascending: true });
-  else if (sort === "nama-az") query = query.order("name", { ascending: true });
-  else if (sort === "terbaru") query = query.order("created_at", { ascending: false });
-  else query = query.order("is_new", { ascending: false }).order("created_at", { ascending: false });
+  function buildBase(select: string, withCount = false) {
+    let q2 = supabase.from("games").select(select, withCount ? { count: "exact" } : undefined).eq("status", "active");
+    if (q) q2 = applySearchFilter(q2, "name", q);
+    if (catId) q2 = q2.eq("category_id", catId);
+    if (sort === "harga-asc")   q2 = q2.order("price", { ascending: true });
+    else if (sort === "harga-desc") q2 = q2.order("price", { ascending: false });
+    else if (sort === "diskon") q2 = q2.order("original_price", { ascending: false }).order("price", { ascending: true });
+    else if (sort === "nama-az") q2 = q2.order("name", { ascending: true });
+    else if (sort === "terbaru") q2 = q2.order("created_at", { ascending: false });
+    else q2 = q2.order("is_new", { ascending: false }).order("created_at", { ascending: false });
+    return q2;
+  }
 
-  const { data: games, count } = await query.range(from, to);
+  const [{ data: games, count }, { data: nextCovers }] = await Promise.all([
+    buildBase(GAME_CARD_FIELDS, true).range(from, to),
+    // Prefetch next page — same filters & sort, only cover_url needed
+    buildBase("cover_url").not("cover_url", "is", null).range(from + PAGE_SIZE, to + PAGE_SIZE),
+  ]);
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
@@ -81,6 +79,11 @@ export default async function HomePage({
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Prefetch next page images — browser downloads in background while user reads current page */}
+      {nextCovers?.map((g) =>
+        g.cover_url ? <link key={g.cover_url} rel="prefetch" as="image" href={g.cover_url} /> : null
+      )}
+
       {isDefaultView && <StorefrontHero />}
 
       <div className="mb-6">
