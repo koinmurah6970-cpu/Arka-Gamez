@@ -63,21 +63,19 @@ export function ProductCard({ game, priority = false }: { game: GameCardData; pr
         <WishlistButton gameId={game.id} variant="compact" />
         {game.cover_url ? (
           <>
-            {/* Blurred background layer — same sizes as foreground so browser cache hits */}
-            <Image
-              src={game.cover_url}
-              alt=""
-              fill
+            {/* Blurred background — CSS background-image reuses same URL as foreground (cache hit, zero extra request) */}
+            <div
               aria-hidden="true"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-              className="object-cover scale-110 blur-lg opacity-60"
+              className="absolute inset-0 scale-110 blur-lg opacity-60 bg-cover bg-center"
+              style={{ backgroundImage: `url(${game.cover_url})` }}
             />
             <div className="absolute inset-0 bg-black/20" />
-            {/* Actual cover — object-contain so nothing gets cropped */}
+            {/* Actual cover */}
             <Image
               src={game.cover_url}
               alt={game.name}
               fill
+              unoptimized
               priority={priority}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
               className="object-contain relative z-[2]"
