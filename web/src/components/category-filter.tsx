@@ -32,7 +32,7 @@ export function CategoryFilter({ categories }: { categories: Category[] }) {
 
   return (
     <div
-      className={`flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible pb-4 no-scrollbar w-full max-w-4xl transition-opacity ${
+      className={`flex flex-wrap gap-2 w-full max-w-4xl transition-opacity ${
         isPending ? "opacity-50" : ""
       }`}
     >
@@ -46,7 +46,6 @@ export function CategoryFilter({ categories }: { categories: Category[] }) {
           {tag === CATEGORY_ALL ? "Semua Kategori" : tag}
         </button>
       ))}
-      <div className="w-4 flex-shrink-0 md:hidden" />
     </div>
   );
 }
