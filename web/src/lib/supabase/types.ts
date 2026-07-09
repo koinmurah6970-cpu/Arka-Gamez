@@ -23,6 +23,19 @@ export type Category = {
   sort_order: number;
 };
 
+export type Genre = {
+  id: string;
+  slug: string;
+  name: string;
+  created_at: string;
+};
+
+export type GameGenre = {
+  game_id: string;
+  genre_id: string;
+  created_at: string;
+};
+
 export type Game = {
   id: string;
   slug: string;
@@ -147,6 +160,33 @@ export type Database = {
         Insert: Partial<Category>;
         Update: Partial<Category>;
         Relationships: [];
+      };
+      genres: {
+        Row: Genre;
+        Insert: Partial<Genre>;
+        Update: Partial<Genre>;
+        Relationships: [];
+      };
+      game_genres: {
+        Row: GameGenre;
+        Insert: Partial<GameGenre>;
+        Update: Partial<GameGenre>;
+        Relationships: [
+          {
+            foreignKeyName: "game_genres_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "game_genres_genre_id_fkey";
+            columns: ["genre_id"];
+            isOneToOne: false;
+            referencedRelation: "genres";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       games: {
         Row: Game;

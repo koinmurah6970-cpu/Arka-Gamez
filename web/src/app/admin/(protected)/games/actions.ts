@@ -49,6 +49,18 @@ export async function updateGame(id: string, formData: FormData) {
   }
 
   await supabase.from("games").update(updates).eq("id", id);
+
+  // Update genres association
+  const genreIds = formData.getAll("genre_ids") as string[];
+  await supabase.from("game_genres").delete().eq("game_id", id);
+  if (genreIds.length > 0) {
+    const ggRows = genreIds.map((genreId) => ({
+      game_id: id,
+      genre_id: genreId,
+    }));
+    await supabase.from("game_genres").insert(ggRows);
+  }
+
   revalidatePath("/admin/games");
   revalidatePath(`/admin/games/${id}`);
   revalidatePath("/");

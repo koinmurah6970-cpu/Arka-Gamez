@@ -13,9 +13,11 @@ export default async function EditGamePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: game }, { data: categories }] = await Promise.all([
+  const [{ data: game }, { data: categories }, { data: genres }, { data: gameGenres }] = await Promise.all([
     supabase.from("games").select("*").eq("id", id).single(),
     supabase.from("categories").select("*").order("sort_order"),
+    supabase.from("genres").select("*").order("name"),
+    supabase.from("game_genres").select("genre_id").eq("game_id", id),
   ]);
 
   if (!game) notFound();
@@ -150,6 +152,28 @@ export default async function EditGamePage({
                 placeholder="contoh: 45 GB"
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm"
               />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                Genre Game
+              </label>
+              <div className="grid grid-cols-2 gap-2 bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm max-h-[160px] overflow-y-auto">
+                {(genres ?? []).map((g) => {
+                  const isChecked = (gameGenres ?? []).some((gg) => gg.genre_id === g.id);
+                  return (
+                    <label key={g.id} className="flex items-center gap-2 text-gray-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="genre_ids"
+                        value={g.id}
+                        defaultChecked={isChecked}
+                      />
+                      {g.name}
+                    </label>
+                  );
+                })}
+              </div>
             </div>
 
             <label className="flex items-center gap-2 text-sm text-gray-600">

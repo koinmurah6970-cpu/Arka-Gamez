@@ -5,6 +5,7 @@ import { createClient as createPublicClient } from "@/lib/supabase/public";
 import { ProductCard } from "@/components/product-card";
 import { SearchBar } from "@/components/search-bar";
 import { CategoryFilter } from "@/components/category-filter";
+import { GenreFilter } from "@/components/genre-filter";
 import { Pagination } from "@/components/pagination";
 import { StorefrontHero } from "@/components/storefront-hero";
 import { SortSelect } from "@/components/sort-select";
@@ -26,6 +27,16 @@ const getCategories = unstable_cache(
   { revalidate: 300 }
 );
 
+const getGenres = unstable_cache(
+  async () => {
+    const supabase = createPublicClient();
+    const { data } = await supabase.from("genres").select("*").order("name");
+    return data ?? [];
+  },
+  ["catalog-genres"],
+  { revalidate: 300 }
+);
+
 // Only the columns ProductCard renders -- selecting "*" here would drag
 // `description` and other unused columns across every one of the 24 rows.
 const GAME_CARD_FIELDS = "id, slug, name, price, original_price, cover_url, is_new, size_label, category:categories(name)";
@@ -33,22 +44,21 @@ const GAME_CARD_FIELDS = "id, slug, name, price, original_price, cover_url, is_n
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; kategori?: string; page?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; kategori?: string; page?: string; sort?: string; genre?: string }>;
 }) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
   const q = params.q?.trim() ?? "";
   const kategori = params.kategori;
+  const genre = params.genre;
   const sort = params.sort ?? "relevan";
 
   const supabase = await createClient();
 
-  // categories is cached (see getCategories above), so resolving the
-  // category name -> id here is effectively free after the first request --
-  // no need to fight Supabase's select-string type parser with a dynamic
-  // embedded-join filter just to avoid a "sequential" round-trip that no
-  // longer exists.
-  const categories = await getCategories();
+  const [categories, genres] = await Promise.all([
+    getCategories(),
+    getGenres(),
+  ]);
 
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
@@ -58,38 +68,57 @@ export default async function HomePage({
     .select(GAME_CARD_FIELDS, { count: "exact" })
     .eq("status", "active");
 
-  if (q) query = applySearchFilter(query, "name", q);
-  if (kategori) {
-    const cat = categories.find((c) => c.name === kategori);
-    if (cat) query = query.eq("category_id", cat.id);
-  }
-
-  if (sort === "harga-asc")   query = query.order("price", { ascending: true });
-  else if (sort === "harga-desc") query = query.order("price", { ascending: false });
-  else if (sort === "diskon") query = query.order("original_price", { ascending: false }).order("price", { ascending: true });
-  else if (sort === "nama-az") query = query.order("name", { ascending: true });
-  else if (sort === "terbaru") query = query.order("created_at", { ascending: false });
-  else query = query.order("is_new", { ascending: false }).order("created_at", { ascending: false });
-
-  // Prefetch query — same filters, next page, cover_url only
   let prefetchQuery = supabase
     .from("games")
     .select("cover_url")
     .eq("status", "active")
     .not("cover_url", "is", null);
 
-  if (q) prefetchQuery = applySearchFilter(prefetchQuery, "name", q);
-  if (kategori) {
-    const cat = categories.find((c) => c.name === kategori);
-    if (cat) prefetchQuery = prefetchQuery.eq("category_id", cat.id);
+  if (q) {
+    query = applySearchFilter(query, "name", q);
+    prefetchQuery = applySearchFilter(prefetchQuery, "name", q);
   }
 
-  if (sort === "harga-asc")   prefetchQuery = prefetchQuery.order("price", { ascending: true });
-  else if (sort === "harga-desc") prefetchQuery = prefetchQuery.order("price", { ascending: false });
-  else if (sort === "diskon") prefetchQuery = prefetchQuery.order("original_price", { ascending: false }).order("price", { ascending: true });
-  else if (sort === "nama-az") prefetchQuery = prefetchQuery.order("name", { ascending: true });
-  else if (sort === "terbaru") prefetchQuery = prefetchQuery.order("created_at", { ascending: false });
-  else prefetchQuery = prefetchQuery.order("is_new", { ascending: false }).order("created_at", { ascending: false });
+  if (kategori) {
+    const cat = categories.find((c) => c.name === kategori);
+    if (cat) {
+      query = query.eq("category_id", cat.id);
+      prefetchQuery = prefetchQuery.eq("category_id", cat.id);
+    }
+  }
+
+  if (genre) {
+    const targetGenre = genres.find((g) => g.slug === genre);
+    if (targetGenre) {
+      const { data: ggData } = await supabase
+        .from("game_genres")
+        .select("game_id")
+        .eq("genre_id", targetGenre.id);
+      const gameIds = (ggData ?? []).map((row: any) => row.game_id);
+      query = query.in("id", gameIds);
+      prefetchQuery = prefetchQuery.in("id", gameIds);
+    }
+  }
+
+  if (sort === "harga-asc") {
+    query = query.order("price", { ascending: true });
+    prefetchQuery = prefetchQuery.order("price", { ascending: true });
+  } else if (sort === "harga-desc") {
+    query = query.order("price", { ascending: false });
+    prefetchQuery = prefetchQuery.order("price", { ascending: false });
+  } else if (sort === "diskon") {
+    query = query.order("original_price", { ascending: false }).order("price", { ascending: true });
+    prefetchQuery = prefetchQuery.order("original_price", { ascending: false }).order("price", { ascending: true });
+  } else if (sort === "nama-az") {
+    query = query.order("name", { ascending: true });
+    prefetchQuery = prefetchQuery.order("name", { ascending: true });
+  } else if (sort === "terbaru") {
+    query = query.order("created_at", { ascending: false });
+    prefetchQuery = prefetchQuery.order("created_at", { ascending: false });
+  } else {
+    query = query.order("is_new", { ascending: false }).order("created_at", { ascending: false });
+    prefetchQuery = prefetchQuery.order("is_new", { ascending: false }).order("created_at", { ascending: false });
+  }
 
   const [{ data: games, count }, { data: nextCovers }] = await Promise.all([
     query.range(from, to),
@@ -98,7 +127,7 @@ export default async function HomePage({
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
-  const isDefaultView = !q && !kategori && page === 1;
+  const isDefaultView = !q && !kategori && !genre && page === 1;
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-7xl">
@@ -121,13 +150,20 @@ export default async function HomePage({
       </Suspense>
 
       <SortPendingProvider>
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <Suspense fallback={<div className="h-[40px]" />}>
-            <CategoryFilter categories={categories} />
-          </Suspense>
-          <Suspense fallback={<div className="h-[40px]" />}>
-            <SortSelect />
-          </Suspense>
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mt-6">
+          <div className="flex-1 space-y-3 min-w-0">
+            <Suspense fallback={<div className="h-[40px]" />}>
+              <CategoryFilter categories={categories} />
+            </Suspense>
+            <Suspense fallback={<div className="h-[40px]" />}>
+              <GenreFilter genres={genres} />
+            </Suspense>
+          </div>
+          <div className="flex-shrink-0 self-end md:self-auto">
+            <Suspense fallback={<div className="h-[40px]" />}>
+              <SortSelect />
+            </Suspense>
+          </div>
         </div>
 
         <CatalogGridFade>
@@ -148,7 +184,7 @@ export default async function HomePage({
       <Pagination
         currentPage={page}
         totalPages={totalPages}
-        searchParams={{ q: params.q, kategori: params.kategori, sort: params.sort }}
+        searchParams={{ q: params.q, kategori: params.kategori, sort: params.sort, genre: params.genre }}
       />
     </main>
   );
