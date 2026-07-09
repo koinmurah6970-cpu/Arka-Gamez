@@ -28,7 +28,7 @@ export function GenreFilter({ genres }: { genres: Genre[] }) {
 
   return (
     <div
-      className={`flex gap-2 overflow-x-auto pb-4 no-scrollbar max-w-4xl transition-opacity ${
+      className={`flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible pb-4 no-scrollbar w-full max-w-4xl transition-opacity ${
         isPending ? "opacity-50" : ""
       }`}
     >
@@ -49,6 +49,7 @@ export function GenreFilter({ genres }: { genres: Genre[] }) {
           {g.name}
         </button>
       ))}
+      <div className="w-4 flex-shrink-0 md:hidden" />
     </div>
   );
 }
